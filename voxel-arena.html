@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voxel 競技場</title>
+    <style>
+        html, body { height: 100%; }
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: #8ecae6;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+            user-select: none;
+        }
+        canvas { display: block; position: fixed; inset: 0; }
+        /* 左上角溫暖陽光眩光特效 */
+        #sun-glow {
+            position: fixed;
+            top: -120px;
+            left: -120px;
+            width: 550px;
+            height: 550px;
+            background: radial-gradient(circle, rgba(255,250,210,0.65) 0%, rgba(255,210,120,0.28) 35%, rgba(255,180,80,0) 70%);
+            pointer-events: none;
+            mix-blend-mode: screen;
+            z-index: 2;
+        }
+        #ui {
+            position: fixed;
+            bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+            left: calc(18px + env(safe-area-inset-left, 0px));
+            max-width: calc(100% - 36px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+            box-sizing: border-box;
+            z-index: 10;
+            color: #fff;
+            background: rgba(20, 26, 35, 0.72);
+            backdrop-filter: blur(8px);
+            padding: 10px 16px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.15);
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 10px 14px;
+            font-size: 13px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+        }
+        .hint-touch { display: none; }
+        @media (hover: none) and (pointer: coarse) {
+            .hint-mouse { display: none; }
+            .hint-touch { display: inline; }
+        }
+        button {
+            background: #e76f51;
+            color: #fff;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        button:hover { background: #f4845f; transform: translateY(-1px); }
+        button:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+    </style>
+</head>
+<body>
+    <div id="sun-glow"></div>
+    <div id="ui">
+        <span class="hint-mouse">🖱️ 左鍵旋轉 ｜ 滾輪縮放 ｜ 右鍵平移</span>
+        <span class="hint-touch">👆 單指旋轉 ｜ 雙指縮放與平移</span>
+        <button id="resetBtn">📷 對齊原圖視角</button>
+    </div>
+
+    <script type="importmap">
+        {
+            "imports": {
+                "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+                "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+            }
+        }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+        // ==========================================
+        // 1. 場景、相機與渲染器 (精準對齊原圖廣角俯視)
+        // ==========================================
+        const scene = new THREE.Scene();
+
+        // 繪製藍天與遠方暖霧漸層背景
+        const skyCanvas = document.createElement('canvas');
+        skyCanvas.width = 2; skyCanvas.height = 512;
+        const sCtx = skyCanvas.getContext('2d');
+        const skyGrad = sCtx.createLinearGradient(0, 0, 0, 512);
+        skyGrad.addColorStop(0, '#6fbbf0');
+        skyGrad.addColorStop(0.55, '#b6e2f7');
+        skyGrad.addColorStop(1, '#e8f4ea');
+        sCtx.fillStyle = skyGrad;
+        sCtx.fillRect(0, 0, 2, 512);
+        const skyTex = new THREE.CanvasTexture(skyCanvas);
+        skyTex.colorSpace = THREE.SRGBColorSpace;
+        scene.background = skyTex;
+        const FOG_DENSITY = 0.0095;
+        scene.fog = new THREE.FogExp2(0xadd9f4, FOG_DENSITY);
+
+        const camera = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, 0.1, 300);
+        const INITIAL_CAM_POS = new THREE.Vector3(0, 23.5, 31.5);
+        const INITIAL_TARGET = new THREE.Vector3(0, 0.8, -1.8);
+        camera.position.copy(INITIAL_CAM_POS);
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+        renderer.toneMapping = THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = 1.08;
+        document.body.appendChild(renderer.domElement);
+
+        const controls = new OrbitControls(camera, renderer.domElement);
+        controls.target.copy(INITIAL_TARGET);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.06;
+        controls.maxPolarAngle = Math.PI / 2 - 0.03;
+        controls.update();
+
+        // 直式螢幕 (手機) 時把相機往後拉讓整座競技場入鏡，並同步減淡霧氣；寬螢幕維持原圖視角
+        const camOffset = new THREE.Vector3().subVectors(INITIAL_CAM_POS, INITIAL_TARGET);
+        const viewFactor = () => THREE.MathUtils.clamp(1.6 / camera.aspect, 1, 2.4);
+        function resetView() {
+            camera.position.copy(INITIAL_TARGET).addScaledVector(camOffset, viewFactor());
+            controls.target.copy(INITIAL_TARGET);
+            controls.update();
+            scene.fog.density = FOG_DENSITY / viewFactor();
+        }
+        resetView();
+        document.getElementById('resetBtn').addEventListener('click', resetView);
+
+        // ==========================================
+        // 2. 光影設定 (左上角溫暖陽光 + 柔和藍色天光)
+        // ==========================================
+        const hemiLight = new THREE.HemisphereLight(0xdff3ff, 0x9e7b56, 0.85);
+        scene.add(hemiLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffe49e, 2.3);
+        sunLight.position.set(-28, 25, -18); // 從左後方打向右前方
+        sunLight.castShadow = true;
+        sunLight.shadow.mapSize.width = 4096;
+        sunLight.shadow.mapSize.height = 4096;
+        sunLight.shadow.camera.near = 5;
+        sunLight.shadow.camera.far = 95;
+        const d = 28;
+        sunLight.shadow.camera.left = -d;
+        sunLight.shadow.camera.right = d;
+        sunLight.shadow.camera.top = d;
+        sunLight.shadow.camera.bottom = -d;
+        sunLight.shadow.bias = -0.0004;
+        sunLight.shadow.normalBias = 0.02;
+        scene.add(sunLight);
+
+        // 補光讓背光面呈現原圖柔和暖色調
+        const fillLight = new THREE.DirectionalLight(0xa8d5ff, 0.5);
+        fillLight.position.set(20, 15, 25);
+        scene.add(fillLight);
+
+        // ==========================================
+        // 3. 程序化貼圖與微導角方塊材質
+        // ==========================================
+        const unitBoxGeo = new RoundedBoxGeometry(1, 1, 1, 2, 0.04); // 微導角讓方塊接縫更立體
+
+        function makeBlockMat(hexColor, roughness = 0.86) {
+            // 產生細膩方塊邊緣與微紋理
+            const c = document.createElement('canvas');
+            c.width = 64; c.height = 64;
+            const ctx = c.getContext('2d');
+            const base = new THREE.Color(hexColor);
+            ctx.fillStyle = '#' + base.getHexString();
+            ctx.fillRect(0, 0, 64, 64);
+
+            // 加入微弱柔和雜訊與亮邊
+            for (let x = 0; x < 64; x += 8) {
+                for (let y = 0; y < 64; y += 8) {
+                    const delta = (Math.sin(x * 12.3 + y * 45.6) * 0.025);
+                    const c2 = base.clone().offsetHSL(0, 0, delta);
+                    ctx.fillStyle = '#' + c2.getHexString();
+                    ctx.fillRect(x, y, 8, 8);
+                }
+            }
+            ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(1, 1, 62, 62);
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace; // 讓貼圖顏色與指定的色碼一致
+            tex.magFilter = THREE.LinearFilter;
+            return new THREE.MeshStandardMaterial({ map: tex, roughness, metalness: 0.03 });
+        }
+
+        // 繪製原圖紅底金邊燕尾城堡旗幟貼圖
+        function createBannerTexture() {
+            const c = document.createElement('canvas');
+            c.width = 256; c.height = 512;
+            const ctx = c.getContext('2d');
+            ctx.clearRect(0, 0, 256, 512);
+
+            // 燕尾旗剪裁路徑
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(256, 0);
+            ctx.lineTo(256, 512);
+            ctx.lineTo(128, 404);
+            ctx.lineTo(0, 512);
+            ctx.closePath();
+            ctx.save();
+            ctx.clip();
+
+            // 紅底 + 橫向布紋 + 兩側暗部
+            ctx.fillStyle = '#c41c1c';
+            ctx.fillRect(0, 0, 256, 512);
+            for (let y = 0; y < 512; y += 6) {
+                ctx.fillStyle = y % 12 === 0 ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.03)';
+                ctx.fillRect(0, y, 256, 3);
+            }
+            const shade = ctx.createLinearGradient(0, 0, 256, 0);
+            shade.addColorStop(0, 'rgba(0,0,0,0.22)');
+            shade.addColorStop(0.5, 'rgba(0,0,0,0)');
+            shade.addColorStop(1, 'rgba(0,0,0,0.22)');
+            ctx.fillStyle = shade;
+            ctx.fillRect(0, 0, 256, 512);
+
+            // 上緣金色飾帶
+            ctx.fillStyle = '#f5c52c';
+            ctx.fillRect(0, 44, 256, 10);
+
+            // 盾牌 + 王冠徽章
+            const shield = (cx, cy, s) => {
+                const w = 56 * s, top = cy - 62 * s, mid = cy + 10 * s, bot = cy + 74 * s;
+                ctx.beginPath();
+                ctx.moveTo(cx - w, top);
+                ctx.lineTo(cx + w, top);
+                ctx.lineTo(cx + w, mid);
+                ctx.quadraticCurveTo(cx + w, bot - 20 * s, cx, bot);
+                ctx.quadraticCurveTo(cx - w, bot - 20 * s, cx - w, mid);
+                ctx.closePath();
+            };
+            ctx.fillStyle = '#f5c52c';
+            shield(128, 215, 1);
+            ctx.fill();
+            ctx.fillStyle = '#8f1010';
+            shield(128, 215, 0.8);
+            ctx.fill();
+            ctx.fillStyle = '#f5c52c';
+            ctx.beginPath();
+            ctx.moveTo(98, 238);
+            ctx.lineTo(98, 196);
+            ctx.lineTo(113, 214);
+            ctx.lineTo(128, 186);
+            ctx.lineTo(143, 214);
+            ctx.lineTo(158, 196);
+            ctx.lineTo(158, 238);
+            ctx.closePath();
+            ctx.fill();
+            for (const [px, py] of [[98, 194], [128, 183], [158, 194]]) {
+                ctx.beginPath();
+                ctx.arc(px, py, 6, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // 金邊 (沿燕尾外框描邊，裁切後只留內側)
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(256, 0);
+            ctx.lineTo(256, 512);
+            ctx.lineTo(128, 404);
+            ctx.lineTo(0, 512);
+            ctx.closePath();
+            ctx.strokeStyle = '#f5c52c';
+            ctx.lineWidth = 26;
+            ctx.lineJoin = 'miter';
+            ctx.stroke();
+            ctx.restore();
+
+            const tex = new THREE.CanvasTexture(c);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = 4;
+            return tex;
+        }
+
+        // ==========================================
+        // 4. 材質庫
+        // ==========================================
+        const mats = {
+            sand: [makeBlockMat(0xeba65b), makeBlockMat(0xe59d52), makeBlockMat(0xdf9549), makeBlockMat(0xf0af65)],
+            arena: [makeBlockMat(0xf0c07c), makeBlockMat(0xe9b46c), makeBlockMat(0xf4c98a), makeBlockMat(0xe2aa62)],
+            grass: [makeBlockMat(0x7cb538), makeBlockMat(0x72ab30), makeBlockMat(0x84bd40)],
+            dirt: [makeBlockMat(0x8d5d31), makeBlockMat(0x83552b)],
+            moss: makeBlockMat(0x88b346),
+            stone: [makeBlockMat(0x9e9d99), makeBlockMat(0x8e8d89), makeBlockMat(0xaba9a4)],
+            darkStone: makeBlockMat(0x52514e),
+            skull: [makeBlockMat(0xe8e5de), makeBlockMat(0xdedbd3), makeBlockMat(0xd4d0c8)],
+            black: makeBlockMat(0x181818, 0.95),
+            wood: makeBlockMat(0x6e4720),
+            leaves: [makeBlockMat(0x528f28), makeBlockMat(0x478020), makeBlockMat(0x629e35)],
+            red: makeBlockMat(0xc41c1c, 0.7),
+            gold: makeBlockMat(0xf5c52c, 0.45),
+            straw: makeBlockMat(0xd9b45a, 0.95),
+            tuft: makeBlockMat(0x467d21),
+            mountain: makeBlockMat(0x6f9fb8, 0.95),
+            mountainGrass: makeBlockMat(0x6a9e5b, 0.95),
+            fireCore: new THREE.MeshBasicMaterial({ color: 0xfff066 }),
+            fireOuter: new THREE.MeshBasicMaterial({ color: 0xff5500, transparent: true, opacity: 0.88 }),
+            eyeGlow: new THREE.MeshBasicMaterial({ color: 0xff3b1f })
+        };
+        mats.gold.metalness = 0.35;
+        const bannerMat = new THREE.MeshStandardMaterial({
+            map: createBannerTexture(), side: THREE.DoubleSide, alphaTest: 0.5, roughness: 0.8
+        });
+
+        function pick(arr, seed) {
+            if (!Array.isArray(arr)) return arr;
+            const idx = Math.abs(Math.floor(Math.sin(seed * 12.9898) * 43758.5453)) % arr.length;
+            return arr[idx];
+        }
+
+        // ==========================================
+        // 5. 方塊批次繪製 (依幾何 + 材質收集成 InstancedMesh)
+        // ==========================================
+        const flatBoxGeo = new THREE.BoxGeometry(1, 1, 1); // 遠景用無導角方塊，省三角面
+        const noShadowMats = new Set([mats.mountain, mats.mountainGrass]);
+        const blockBuckets = new Map();
+        const _m4 = new THREE.Matrix4();
+        const _pos = new THREE.Vector3();
+        const _quat = new THREE.Quaternion();
+        const _scl = new THREE.Vector3();
+
+        function addBlock(x, y, z, matOrArr, scaleX = 1, scaleY = 1, scaleZ = 1, geo = unitBoxGeo) {
+            const mat = pick(matOrArr, x * 31 + y * 17 + z * 13);
+            _pos.set(x, y, z);
+            _scl.set(scaleX, scaleY, scaleZ);
+            _m4.compose(_pos, _quat, _scl);
+            const key = geo.uuid + mat.uuid;
+            let bucket = blockBuckets.get(key);
+            if (!bucket) {
+                bucket = { geo, mat, list: [] };
+                blockBuckets.set(key, bucket);
+            }
+            bucket.list.push(_m4.clone());
+        }
+
+        function flushBlocks() {
+            for (const { geo, mat, list } of blockBuckets.values()) {
+                const mesh = new THREE.InstancedMesh(geo, mat, list.length);
+                list.forEach((m, i) => mesh.setMatrixAt(i, m));
+                mesh.instanceMatrix.needsUpdate = true;
+                mesh.castShadow = !noShadowMats.has(mat);
+                mesh.receiveShadow = true;
+                scene.add(mesh);
+            }
+            blockBuckets.clear();
+        }
+
+        // ==========================================
+        // 6. 確定性雜訊
+        // ==========================================
+        function hash2(x, z) {
+            const s = Math.sin(x * 127.1 + z * 311.7) * 43758.5453;
+            return s - Math.floor(s);
+        }
+        function valueNoise(x, z) {
+            const xi = Math.floor(x), zi = Math.floor(z);
+            const xf = x - xi, zf = z - zi;
+            const u = xf * xf * (3 - 2 * xf), v = zf * zf * (3 - 2 * zf);
+            const a = hash2(xi, zi), b = hash2(xi + 1, zi), c = hash2(xi, zi + 1), e = hash2(xi + 1, zi + 1);
+            return a + (b - a) * u + (c - a) * v + (a - b - c + e) * u * v;
+        }
+        function fbm(x, z) {
+            return valueNoise(x, z) * 0.6
+                + valueNoise(x * 2.03 + 5.2, z * 2.03 + 9.1) * 0.3
+                + valueNoise(x * 4.1 + 3.7, z * 4.1 + 1.3) * 0.1;
+        }
+        const { smoothstep, clamp } = THREE.MathUtils;
+        const DIRS4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+        const DIRS6 = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+
+        // ==========================================
+        // 7. 地形：競技場沙地、城牆環、外圍草原與遠方丘陵
+        // ==========================================
+        const ACX = 0, ACZ = -2;                 // 競技場中心
+        const FLOOR = { rx: 10.5, rz: 8 };       // 沙地橢圓
+        const WALL = { rx: 12, rz: 9.5 };        // 城牆外緣
+        const ell = (x, z, rx, rz) => Math.hypot((x - ACX) / rx, (z - ACZ) / rz);
+        const SKULL = { cx: 0, cz: -13.5, voxel: 0.7 };
+        const TOWERS = [[-9, -8], [9, -8], [-10, 4], [10, 4]];
+        const TOWER_R = 2.3, TOWER_H = 6;
+        const NEAR = { x: 24, zMin: -28 };       // 近景使用導角方塊
+        const FAR = { x: 46, zMin: -60, zMax: 15 };
+
+        const k2 = (x, z) => `${x},${z}`;
+        const cells = new Map();
+        const getCell = (x, z) => cells.get(k2(Math.round(x), Math.round(z)));
+        const getH = (x, z) => getCell(x, z)?.h ?? 0;
+
+        const towerCells = new Set();
+        for (const [tx, tz] of TOWERS) {
+            for (let dx = -2; dx <= 2; dx++) {
+                for (let dz = -2; dz <= 2; dz++) {
+                    if (Math.hypot(dx, dz) <= TOWER_R) towerCells.add(k2(tx + dx, tz + dz));
+                }
+            }
+        }
+
+        for (let x = -FAR.x; x <= FAR.x; x++) {
+            for (let z = FAR.zMin; z <= FAR.zMax; z++) {
+                const eF = ell(x, z, FLOOR.rx, FLOOR.rz), eW = ell(x, z, WALL.rx, WALL.rz);
+                const skullChannel = Math.abs(x - SKULL.cx) <= 1 && z <= -9 && z >= -16;
+                let h, type;
+                if (eF <= 1 || skullChannel) {
+                    h = -1; type = 'arena';
+                } else if (eW <= 1) {
+                    if (z > ACZ && Math.abs(x - ACX) <= 1) { h = -1; type = 'gate'; }
+                    else if (z < ACZ && Math.abs(x - SKULL.cx) <= 3) { h = 0; type = 'grass'; } // 由骷髏門取代
+                    else { h = 2; type = 'wall'; }
+                } else {
+                    const e = ell(x, z, 10, 7.5);
+                    let hh = (fbm(x * 0.09 + 11, z * 0.09 + 7) - 0.5) * 2.2;
+                    hh += smoothstep(e, 2.2, 5) * (3 + fbm(x * 0.05 + 3, z * 0.05 + 9) * 9);
+                    hh *= smoothstep(e, 1.25, 1.9);
+                    hh *= clamp(Math.min((FAR.x - Math.abs(x)) / 10, (z - FAR.zMin) / 10), 0, 1);
+                    h = Math.max(0, Math.round(hh));
+                    type = 'grass';
+                    if (Math.abs(x - ACX) <= 1 && z >= ACZ + 9) type = 'path';
+                    else if (e < 1.7 && fbm(x * 0.3 + 70, z * 0.3 + 70) > 0.6) type = 'sand';
+                    else if (h >= 5 && fbm(x * 0.25 + 60, z * 0.25 + 60) > 0.62) type = 'stone';
+                }
+                cells.set(k2(x, z), { h, type });
+            }
+        }
+
+        function buildTuft(x, y, z, seed) {
+            const ox = (hash2(seed, 50) - 0.5) * 0.5, oz = (hash2(50, seed) - 0.5) * 0.5;
+            addBlock(x + ox - 0.12, y + 0.22, z + oz, mats.tuft, 0.12, 0.45, 0.12);
+            addBlock(x + ox + 0.1, y + 0.3, z + oz + 0.08, mats.tuft, 0.12, 0.6, 0.12);
+            addBlock(x + ox, y + 0.18, z + oz - 0.14, mats.tuft, 0.12, 0.36, 0.12);
+        }
+
+        const isEnclosure = (c) => c && (c.type === 'wall' || c.type === 'arena' || c.type === 'gate');
+        for (const [key, cell] of cells) {
+            if (towerCells.has(key)) continue;
+            const [x, z] = key.split(',').map(Number);
+            const { h, type } = cell;
+            const near = Math.abs(x) <= NEAR.x && z >= NEAR.zMin;
+            const geo = near ? unitBoxGeo : flatBoxGeo;
+            const minN = Math.min(...DIRS4.map(([dx, dz]) => getH(x + dx, z + dz)));
+            const from = Math.max(-2, Math.min(h, minN + 1)); // 只產生看得到的方塊
+
+            for (let y = from; y <= h; y++) {
+                let mat;
+                if (type === 'wall') {
+                    const n = hash2(x * 1.3 + y, z * 2.1 - y);
+                    mat = y === h ? mats.stone : (y <= 0 && n > 0.55 ? mats.darkStone : (n < 0.08 ? mats.moss : mats.stone));
+                } else if (type === 'arena' || type === 'gate') {
+                    mat = mats.arena;
+                } else if (y === h) {
+                    if (type === 'grass') mat = mats.grass;
+                    else if (type === 'sand') mat = mats.sand;
+                    else if (type === 'stone') mat = mats.stone;
+                    else mat = hash2(x * 2.1, z * 3.7) > 0.25 ? mats.stone : mats.sand; // path
+                } else {
+                    mat = y <= h - 3 ? mats.stone : mats.dirt;
+                }
+                addBlock(x, y, z, mat, 1, 1, 1, geo);
+            }
+
+            // 城牆外緣垛口
+            if (type === 'wall') {
+                const outer = DIRS4.some(([dx, dz]) => !isEnclosure(getCell(x + dx, z + dz)));
+                if (outer && (x + z) % 2 === 0) addBlock(x, h + 1, z, mats.stone);
+            }
+            // 大門門楣
+            if (type === 'gate') {
+                addBlock(x, 2, z, x === ACX ? mats.gold : mats.stone);
+                addBlock(x, 3, z, mats.stone);
+            }
+            // 草地點綴 (僅近景)
+            if (near && type === 'grass') {
+                const r = hash2(x * 1.7 + 3, z * 2.3 + 7);
+                if (r > 0.68) {
+                    buildTuft(x, h + 0.5, z, x * 13 + z);
+                } else if (r < 0.04) {
+                    addBlock(x, h + 0.75, z, mats.tuft, 0.08, 0.5, 0.08);
+                    addBlock(x, h + 1.05, z, r < 0.02 ? mats.red : mats.gold, 0.26, 0.2, 0.26);
+                }
+            }
+        }
+
+        // 競技場中央圓形紋章 (嵌在沙地上)
+        for (let x = -4; x <= 4; x++) {
+            for (let z = ACZ - 4; z <= ACZ + 4; z++) {
+                const r = Math.hypot(x - ACX, z - ACZ);
+                if (r >= 2.6 && r <= 3.5) addBlock(x, -0.5, z, mats.stone, 1, 0.08, 1);
+                else if (r <= 0.5) addBlock(x, -0.45, z, mats.gold, 1.4, 0.18, 1.4);
+            }
+        }
+        for (const [dx, dz] of DIRS4) addBlock(ACX + dx * 1.6, -0.47, ACZ + dz * 1.6, mats.red, 0.5, 0.1, 0.5);
+
+        // ==========================================
+        // 8. 火焰 (火盆、火把) 與飄動旗幟
+        // ==========================================
+        const fires = [];
+        function addFire(x, y, z, size = 1, intensity = 18, distance = 12) {
+            const g = new THREE.Group();
+            g.position.set(x, y, z);
+            const outer = new THREE.Mesh(unitBoxGeo, mats.fireOuter);
+            outer.scale.set(0.5 * size, 0.55 * size, 0.5 * size);
+            outer.position.y = 0.27 * size;
+            const core = new THREE.Mesh(unitBoxGeo, mats.fireCore);
+            core.scale.set(0.26 * size, 0.7 * size, 0.26 * size);
+            core.position.y = 0.35 * size;
+            const tip = new THREE.Mesh(unitBoxGeo, mats.fireOuter);
+            tip.scale.set(0.22 * size, 0.25 * size, 0.22 * size);
+            tip.position.y = 0.75 * size;
+            const light = new THREE.PointLight(0xff8a2a, intensity, distance, 2);
+            light.position.y = 0.6 * size;
+            g.add(outer, core, tip, light);
+            scene.add(g);
+            fires.push({ g, outer, core, tip, light, base: intensity, size, seed: fires.length * 2.7 });
+        }
+
+        function buildTorch(x, z) {
+            const base = getH(x, z) + 0.5;
+            addBlock(x, base + 0.8, z, mats.wood, 0.28, 1.6, 0.28);
+            addBlock(x, base + 1.65, z, mats.gold, 0.42, 0.16, 0.42);
+            addFire(x, base + 1.72, z, 1, 14, 10);
+        }
+
+        function buildFirePedestal(x, z) {
+            const base = getH(x, z) + 0.5;
+            addBlock(x, base + 0.6, z, mats.stone, 0.9, 1.2, 0.9);
+            addBlock(x, base + 1.25, z, mats.gold, 1.05, 0.12, 1.05);
+            addFire(x, base + 1.3, z, 1.1, 16, 10);
+        }
+
+        const banners = [];
+        function addBanner(x, yTop, z, rotY, w = 1.5, h = 3) {
+            const g = new THREE.Group();
+            g.position.set(x, yTop, z);
+            g.rotation.y = rotY;
+            const geo = new THREE.PlaneGeometry(w, h, 2, 12);
+            geo.translate(0, -h / 2, 0); // 以上緣為懸掛點
+            const cloth = new THREE.Mesh(geo, bannerMat);
+            cloth.castShadow = true;
+            cloth.receiveShadow = true;
+            const rod = new THREE.Mesh(unitBoxGeo, mats.gold);
+            rod.scale.set(w + 0.3, 0.12, 0.12);
+            rod.castShadow = true;
+            g.add(cloth, rod);
+            scene.add(g);
+            banners.push({ geo, base: Float32Array.from(geo.attributes.position.array), h, phase: x * 0.7 + z * 0.3 });
+        }
+
+        // ==========================================
+        // 9. 城堡塔樓
+        // ==========================================
+        function buildTower(tx, tz) {
+            for (let dx = -2; dx <= 2; dx++) {
+                for (let dz = -2; dz <= 2; dz++) {
+                    const r = Math.hypot(dx, dz);
+                    if (r > TOWER_R) continue;
+                    const x = tx + dx, z = tz + dz;
+                    const outer = r > 1.2;
+                    for (let y = -1; y <= TOWER_H; y++) {
+                        if (!outer && y < TOWER_H) continue; // 內部看不到
+                        let mat = mats.stone;
+                        if (y <= 0) mat = mats.darkStone;
+                        else if (y === TOWER_H - 1) mat = mats.darkStone; // 頂部飾帶
+                        else if (hash2(x + y, z - y) < 0.06) mat = mats.moss;
+                        addBlock(x, y, z, mat);
+                    }
+                    if (outer && (dx + dz) % 2 === 0) addBlock(x, TOWER_H + 1, z, mats.stone);
+                }
+            }
+            // 側面窗縫
+            for (const s of [-1, 1]) addBlock(tx + s * 2.52, 3.5, tz, mats.black, 0.06, 1, 0.3);
+            // 正面紅底金邊燕尾旗
+            addBanner(tx, TOWER_H - 0.35, tz + 2.68, 0, 1.5, 3);
+            // 頂部火盆
+            addBlock(tx, TOWER_H + 0.75, tz, mats.darkStone, 1.1, 0.5, 1.1);
+            addBlock(tx, TOWER_H + 1.02, tz, mats.gold, 1.2, 0.08, 1.2);
+            addFire(tx, TOWER_H + 1.05, tz, 1.3, 22, 13);
+        }
+        TOWERS.forEach(([tx, tz]) => buildTower(tx, tz));
+
+        // 北側內牆旗幟 (朝向場中央)
+        for (const s of [-1, 1]) {
+            const x = ACX + s * 6;
+            const rel = -FLOOR.rz * Math.sqrt(1 - (6 / FLOOR.rx) ** 2);
+            const nx = -(x - ACX) / FLOOR.rx ** 2, nz = -rel / FLOOR.rz ** 2;
+            addBanner(x - s * 0.15, 2.3, ACZ + rel + 0.3, Math.atan2(nx, nz), 1.1, 2.2);
+        }
+
+        // ==========================================
+        // 10. 骷髏巨門 (北側主門)
+        // ==========================================
+        function buildSkullGate() {
+            const { cx, cz, voxel: S } = SKULL;
+            const by = -0.5 + S / 2;
+            const inEllipsoid = (x, y, z, ex, ey, ez, rx, ry, rz) =>
+                ((x - ex) / rx) ** 2 + ((y - ey) / ry) ** 2 + ((z - ez) / rz) ** 2 <= 1;
+            const solid = (x, y, z) => {
+                if (y < 0) return false;
+                if (inEllipsoid(x, y, z, 0, 6.5, -0.5, 6, 5, 5.2)) return true;                    // 頭蓋
+                if (Math.abs(x) <= 4.5 && y >= 3 && y <= 8 && z >= -2 && z <= 4) return true;       // 臉部
+                if (y <= 2 && Math.abs(x) <= 3.5 + y * 0.5 && z >= -3 && z <= 4) return true;       // 下顎
+                if (inEllipsoid(Math.abs(x), y, z, 4.3, 4, 2.4, 1.6, 1.4, 1.6)) return true;        // 顴骨
+                return false;
+            };
+            const isTooth = (x, y, z) =>
+                (y === 2 && z >= 3 && Math.abs(x) <= 2 && x % 2 === 0) ||
+                (y === 0 && z === 4 && Math.abs(x) === 1);
+            const carveType = (x, y, z) => {
+                for (const s of [-1, 1]) {
+                    if (z >= 2 && inEllipsoid(x, y, z, s * 2.5, 6.5, 4.6, 2, 2, 2)) return 'eye';
+                }
+                if (z >= 3 && ((y === 4 && Math.abs(x) <= 1) || (y === 5 && x === 0))) return 'nose';
+                if (y >= 0 && y <= 2 && Math.abs(x) <= 2 && z >= -2 && !isTooth(x, y, z)) return 'mouth';
+                return null;
+            };
+            const hole = (x, y, z) => (solid(x, y, z) ? carveType(x, y, z) : null);
+            const filled = (x, y, z) => y < 0 || (solid(x, y, z) && !carveType(x, y, z));
+
+            for (let x = -7; x <= 7; x++) {
+                for (let y = 0; y <= 12; y++) {
+                    for (let z = -7; z <= 7; z++) {
+                        if (!filled(x, y, z)) continue;
+                        if (DIRS6.every(([dx, dy, dz]) => filled(x + dx, y + dy, z + dz))) continue;
+
+                        let mat = mats.skull;
+                        if (!isTooth(x, y, z)) {
+                            if (hole(x, y, z + 1)) {
+                                mat = mats.black;
+                            } else if (filled(x, y, z + 1)) {
+                                for (const [dx, dy, dz] of DIRS6) {
+                                    const hh = hole(x + dx, y + dy, z + dz);
+                                    if (hh) {
+                                        mat = hh === 'mouth' ? mats.darkStone : mats.black;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        const wx = cx + x * S, wy = by + y * S, wz = cz + z * S;
+                        if (mat === mats.skull) {
+                            const n = hash2(x * 3.3 + y * 1.1, z * 2.7 + y);
+                            if (!filled(x, y + 1, z) && y >= 9 && n > 0.3) {
+                                mat = mats.moss;
+                                if (n > 0.82) buildTuft(wx, wy + S / 2, wz, wx * 7 + wz);
+                            } else if (n < 0.05) {
+                                mat = mats.stone;
+                            }
+                        }
+                        addBlock(wx, wy, wz, mat, S, S, S);
+                    }
+                }
+            }
+
+            const eyes = [];
+            for (const s of [-1, 1]) {
+                const eye = new THREE.Mesh(unitBoxGeo, mats.eyeGlow);
+                eye.scale.setScalar(0.4);
+                eye.position.set(cx + s * 2.5 * S, by + 6.5 * S, cz + 2.75 * S);
+                scene.add(eye);
+                eyes.push(eye);
+            }
+            const eyeLight = new THREE.PointLight(0xff3b1f, 6, 6, 2);
+            eyeLight.position.set(cx, by + 6.5 * S, cz + 4.4 * S);
+            scene.add(eyeLight);
+            return { eyes, eyeLight };
+        }
+        const skull = buildSkullGate();
+        buildFirePedestal(ACX - 4.5, -8.5);
+        buildFirePedestal(ACX + 4.5, -8.5);
+        buildTorch(ACX - 2.6, ACZ + 10);
+        buildTorch(ACX + 2.6, ACZ + 10);
+
+        // ==========================================
+        // 11. 場內道具：木樁假人、武器架、木桶、骨骸
+        // ==========================================
+        function buildDummy(x, z) {
+            const b = getH(x, z) + 0.5;
+            addBlock(x, b + 0.9, z, mats.wood, 0.22, 1.8, 0.22);
+            addBlock(x, b + 1.25, z, mats.straw, 0.7, 0.8, 0.45);
+            addBlock(x, b + 1.4, z, mats.wood, 1.5, 0.16, 0.16);
+            addBlock(x, b + 1.95, z, mats.straw, 0.45, 0.45, 0.45);
+            addBlock(x, b + 1.25, z + 0.24, mats.red, 0.3, 0.3, 0.04);
+        }
+        buildDummy(ACX - 5, ACZ + 3);
+        buildDummy(ACX + 5.5, ACZ + 2);
+
+        function buildWeaponRack(x, z0, z1) {
+            const b = getH(x, (z0 + z1) / 2) + 0.5;
+            for (const z of [z0, z1]) addBlock(x, b + 0.75, z, mats.wood, 0.18, 1.5, 0.18);
+            addBlock(x, b + 1.35, (z0 + z1) / 2, mats.wood, 0.14, 0.14, z1 - z0 + 0.3);
+            for (let z = z0 + 0.5; z < z1; z += 0.6) {
+                addBlock(x + 0.12, b + 0.75, z, mats.stone, 0.06, 1.2, 0.14);
+                addBlock(x + 0.12, b + 1.4, z, mats.gold, 0.1, 0.08, 0.4);
+                addBlock(x + 0.12, b + 1.6, z, mats.wood, 0.08, 0.3, 0.08);
+            }
+        }
+        buildWeaponRack(ACX - 9, ACZ - 2.2, ACZ + 0.8);
+
+        function buildBarrel(x, z) {
+            const b = getH(x, z) + 0.5;
+            addBlock(x, b + 0.45, z, mats.wood, 0.8, 0.9, 0.8);
+            for (const y of [0.2, 0.7]) addBlock(x, b + y, z, mats.darkStone, 0.84, 0.08, 0.84);
+        }
+        [[8.6, -3.5], [8.2, -2.4], [8.9, -1.4]].forEach(([x, z]) => buildBarrel(ACX + x, z));
+
+        function buildBones(x, z, withSkull) {
+            const b = getH(x, z) + 0.5;
+            addBlock(x, b + 0.06, z, mats.skull, 0.7, 0.12, 0.12);
+            addBlock(x - 0.32, b + 0.08, z, mats.skull, 0.16, 0.16, 0.24);
+            addBlock(x + 0.32, b + 0.08, z, mats.skull, 0.16, 0.16, 0.24);
+            if (withSkull) {
+                addBlock(x + 0.6, b + 0.22, z + 0.4, mats.skull, 0.44, 0.44, 0.44);
+                addBlock(x + 0.5, b + 0.27, z + 0.63, mats.black, 0.1, 0.1, 0.02);
+                addBlock(x + 0.7, b + 0.27, z + 0.63, mats.black, 0.1, 0.1, 0.02);
+            }
+        }
+        buildBones(ACX - 2.5, ACZ + 4, true);
+        buildBones(ACX + 3, ACZ - 4.5, false);
+        buildBones(ACX - 6.5, ACZ - 3, true);
+        buildBones(ACX + 6.5, ACZ + 5, false);
+
+        // ==========================================
+        // 12. 外圍：營帳、樹木、岩石
+        // ==========================================
+        function buildTent(x, z) {
+            const b = getH(x, z) + 0.5;
+            for (let k = 0; k < 3; k++) {
+                for (let dx = -(2 - k); dx <= 2 - k; dx++) {
+                    for (let dz = -1; dz <= 2; dz++) {
+                        addBlock(x + dx, b + 0.5 + k, z + dz, Math.abs(dx) % 2 === 0 ? mats.red : mats.gold);
+                    }
+                }
+            }
+            addBlock(x, b + 3.5, z + 0.5, mats.gold, 0.5, 1, 3.6);
+            addBlock(x, b + 0.6, z + 2.52, mats.black, 0.8, 1.2, 0.06);
+            addBlock(x, b + 4.6, z + 0.5, mats.wood, 0.12, 1.4, 0.12);
+            addBlock(x + 0.35, b + 5, z + 0.5, mats.red, 0.6, 0.4, 0.05);
+        }
+        buildTent(-17, -17);
+        buildTent(18, -16);
+
+        function buildTree(x, z) {
+            const g = getH(x, z);
+            const trunkH = 3 + Math.floor(hash2(x, z) * 2);
+            const geo = Math.abs(x) <= NEAR.x && z >= NEAR.zMin ? unitBoxGeo : flatBoxGeo;
+            for (let i = 1; i <= trunkH; i++) addBlock(x, g + i, z, mats.wood, 1, 1, 1, geo);
+            const top = g + trunkH;
+            for (let dx = -2; dx <= 2; dx++) {
+                for (let dy = -1; dy <= 2; dy++) {
+                    for (let dz = -2; dz <= 2; dz++) {
+                        if (dx === 0 && dz === 0 && dy <= 0) continue;
+                        const r = dx * dx + dz * dz + (dy - 0.4) ** 2 * 1.6;
+                        if (r <= 4.6 + hash2(x + dx * 7, z + dz * 3 + dy) * 1.8) {
+                            addBlock(x + dx, top + dy, z + dz, mats.leaves, 1, 1, 1, geo);
+                        }
+                    }
+                }
+            }
+        }
+        [[-17, -4], [-16, -11], [-21, 1], [17, -3], [19, -9], [12, -20], [-11, -19], [21, 3], [-23, -8],
+         [-20, 11], [21, 12], [-27, -20], [27, -22], [-6, -24], [7, -25], [-34, -6], [33, -4], [-15, -30], [16, -33]]
+            .forEach(([x, z]) => buildTree(x, z));
+
+        function buildRock(x, z, size) {
+            for (let dx = -size; dx <= size; dx++) {
+                for (let dz = -size; dz <= size; dz++) {
+                    const r = Math.hypot(dx, dz);
+                    if (r > size + 0.3) continue;
+                    const gg = getH(x + dx, z + dz);
+                    const hgt = Math.max(1, Math.round((size - r + 1) * (0.6 + hash2(x + dx, z + dz) * 0.7)));
+                    for (let i = 1; i <= hgt; i++) {
+                        const topMoss = i === hgt && hash2(z + dz, x + dx) > 0.6;
+                        addBlock(x + dx, gg + i, z + dz, topMoss ? mats.moss : (hash2(i, dx + dz) > 0.8 ? mats.darkStone : mats.stone));
+                    }
+                }
+            }
+        }
+        buildRock(-12, 10, 1);
+        buildRock(12, 12, 0);
+        buildRock(-22, -15, 1);
+        buildRock(23, -15, 1);
+        buildRock(5, 13, 0);
+
+        // ==========================================
+        // 13. 遠景山脈 (大尺寸階梯方塊)
+        // ==========================================
+        function buildMountain(mx, mz, R, Hmax) {
+            const S = 6;
+            for (let gx = -R; gx <= R; gx += S) {
+                for (let gz = -R; gz <= R; gz += S) {
+                    const r = Math.hypot(gx, gz) / R;
+                    if (r > 1) continue;
+                    const n = valueNoise((mx + gx) * 0.06, (mz + gz) * 0.06);
+                    let h = (1 - r) ** 1.3 * Hmax * (0.7 + n * 0.6);
+                    h = Math.max(2, Math.round(h / 3) * 3);
+                    addBlock(mx + gx, h / 2 - 3, mz + gz, mats.mountain, S, h, S, flatBoxGeo);
+                    if (h < Hmax * 0.5) addBlock(mx + gx, h - 2.5, mz + gz, mats.mountainGrass, S, 1, S, flatBoxGeo);
+                }
+            }
+        }
+        buildMountain(-80, -110, 36, 46);
+        buildMountain(-25, -130, 42, 60);
+        buildMountain(35, -120, 38, 50);
+        buildMountain(95, -95, 34, 40);
+        buildMountain(-125, -45, 30, 30);
+        buildMountain(125, -50, 30, 34);
+
+        flushBlocks();
+
+        // 地形範圍外延伸的草原平面 (中間挖空，不蓋住競技場)
+        const groundShape = new THREE.Shape();
+        groundShape.moveTo(-320, -320);
+        groundShape.lineTo(320, -320);
+        groundShape.lineTo(320, 320);
+        groundShape.lineTo(-320, 320);
+        groundShape.closePath();
+        const groundHole = new THREE.Path();
+        groundHole.moveTo(-FAR.x - 0.5, -FAR.zMax - 0.5);
+        groundHole.lineTo(FAR.x + 0.5, -FAR.zMax - 0.5);
+        groundHole.lineTo(FAR.x + 0.5, -FAR.zMin + 0.5);
+        groundHole.lineTo(-FAR.x - 0.5, -FAR.zMin + 0.5);
+        groundHole.closePath();
+        groundShape.holes.push(groundHole);
+        const groundGeo = new THREE.ShapeGeometry(groundShape);
+        groundGeo.rotateX(-Math.PI / 2);
+        const outerGround = new THREE.Mesh(groundGeo, new THREE.MeshStandardMaterial({ color: 0x72ab30, roughness: 0.95 }));
+        outerGround.position.y = 0.48;
+        outerGround.receiveShadow = true;
+        scene.add(outerGround);
+
+        // ==========================================
+        // 14. 雲朵與火星粒子
+        // ==========================================
+        const cloudMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff, roughness: 1, emissive: 0xffffff, emissiveIntensity: 0.3, transparent: true, opacity: 0.95
+        });
+        const clouds = [];
+        [[-50, 26, -55, 1.3], [-10, 30, -75, 1.6], [30, 24, -50, 1.1], [65, 28, -70, 1.4], [-85, 22, -25, 1.2], [90, 23, -10, 1]]
+            .forEach(([x, y, z, s], ci) => {
+                const grp = new THREE.Group();
+                const n = 5 + Math.floor(hash2(ci, 1) * 5);
+                for (let i = 0; i < n; i++) {
+                    const m = new THREE.Mesh(flatBoxGeo, cloudMat);
+                    m.scale.set((2 + hash2(ci, i) * 3) * s, (1 + hash2(i, ci) * 1.2) * s, (2 + hash2(i + 9, ci) * 2.5) * s);
+                    m.position.set((hash2(ci + 3, i) - 0.5) * 7 * s, hash2(ci, i + 5) * 1.2 * s, (hash2(i, ci + 7) - 0.5) * 3 * s);
+                    grp.add(m);
+                }
+                grp.position.set(x, y, z);
+                scene.add(grp);
+                clouds.push({ grp, speed: 0.6 + hash2(ci, 2) * 0.8 });
+            });
+
+        const EMBERS = 110;
+        const emberPos = new Float32Array(EMBERS * 3);
+        const emberState = [];
+        const emberGeo = new THREE.BufferGeometry();
+        emberGeo.setAttribute('position', new THREE.BufferAttribute(emberPos, 3));
+        const embers = new THREE.Points(emberGeo, new THREE.PointsMaterial({
+            color: 0xffa040, size: 0.3, transparent: true, opacity: 0.9, depthWrite: false, blending: THREE.AdditiveBlending
+        }));
+        embers.frustumCulled = false;
+        scene.add(embers);
+
+        function resetEmber(i) {
+            const f = fires[Math.floor(Math.random() * fires.length)];
+            const p = f.g.position;
+            emberPos[i * 3] = p.x + (Math.random() - 0.5) * 0.4 * f.size;
+            emberPos[i * 3 + 1] = p.y + 0.5 * f.size;
+            emberPos[i * 3 + 2] = p.z + (Math.random() - 0.5) * 0.4 * f.size;
+            emberState[i] = { life: 0.8 + Math.random() * 1.8, vy: 0.8 + Math.random() * 1.2, phase: Math.random() * 6.28 };
+        }
+        for (let i = 0; i < EMBERS; i++) {
+            resetEmber(i);
+            emberState[i].life *= Math.random();
+        }
+
+        // ==========================================
+        // 15. 動畫迴圈
+        // ==========================================
+        const clock = new THREE.Clock();
+        const motionScale = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.25 : 1;
+
+        function animate() {
+            const dt = Math.min(clock.getDelta(), 0.05) * motionScale;
+            const t = clock.elapsedTime * motionScale;
+
+            // 旗幟隨風擺動 (上緣固定)
+            for (const b of banners) {
+                const pos = b.geo.attributes.position;
+                for (let i = 0; i < pos.count; i++) {
+                    const x0 = b.base[i * 3], y0 = b.base[i * 3 + 1];
+                    const f = -y0 / b.h;
+                    pos.setZ(i, Math.sin(t * 2.2 + b.phase + y0 * 1.3) * 0.12 * f + Math.sin(t * 3.1 + x0 * 2) * 0.03 * f);
+                    pos.setX(i, x0 + Math.sin(t * 1.4 + b.phase) * 0.05 * f);
+                }
+                pos.needsUpdate = true;
+            }
+
+            // 火焰閃爍
+            for (const f of fires) {
+                const ft = t * 9 + f.seed;
+                const flick = 0.85 + Math.sin(ft) * 0.08 + Math.sin(ft * 2.3) * 0.06 + Math.random() * 0.06;
+                f.outer.scale.y = 0.55 * f.size * flick;
+                f.core.scale.y = 0.7 * f.size * (0.9 + Math.sin(ft * 1.7) * 0.12);
+                f.tip.position.set(Math.sin(ft * 0.7) * 0.06 * f.size, (0.72 + Math.sin(ft * 1.3) * 0.08) * f.size, 0);
+                f.g.rotation.y += dt * 1.5;
+                f.light.intensity = f.base * flick;
+            }
+
+            // 火星上升
+            for (let i = 0; i < EMBERS; i++) {
+                const s = emberState[i];
+                s.life -= dt;
+                if (s.life <= 0) { resetEmber(i); continue; }
+                emberPos[i * 3] += Math.sin(t * 3 + s.phase) * dt * 0.35;
+                emberPos[i * 3 + 1] += s.vy * dt;
+                emberPos[i * 3 + 2] += Math.cos(t * 2.5 + s.phase) * dt * 0.35;
+            }
+            emberGeo.attributes.position.needsUpdate = true;
+
+            // 骷髏眼睛呼吸光
+            const pulse = 0.75 + Math.sin(t * 2.2) * 0.25;
+            skull.eyes.forEach(e => e.scale.setScalar(0.32 + pulse * 0.12));
+            skull.eyeLight.intensity = 6 * pulse;
+
+            // 雲朵飄移
+            for (const c of clouds) {
+                c.grp.position.x += c.speed * dt;
+                if (c.grp.position.x > 140) c.grp.position.x = -140;
+            }
+
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        renderer.setAnimationLoop(animate);
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            scene.fog.density = FOG_DENSITY / viewFactor();
+        });
+    </script>
+</body>
+</html>
