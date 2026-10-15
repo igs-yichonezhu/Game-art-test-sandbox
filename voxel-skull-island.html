@@ -5,50 +5,74 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Voxel Skull Island</title>
     <style>
+        /* 全螢幕 3D 場景，介面浮在角落；刻意維持白天單一配色 */
+        :root {
+            --sky: #a6dcf0;
+            --panel: rgba(255, 255, 255, 0.78);
+            --ink: #2b3a42;
+            --flag-red: #c41c1c;
+            --flag-red-hover: #d83030;
+            --on-red: #ffffff;
+            --font-ui: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+            color-scheme: light;
+        }
         html, body {
             margin: 0;
             height: 100%;
             overflow: hidden;
-            background: #a6dcf0;
-            font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+            background: var(--sky);
+            color: var(--ink);
+            font-family: var(--font-ui);
         }
-        canvas { display: block; }
+        canvas { display: block; position: fixed; inset: 0; }
+        #ui, #resetCam { z-index: 1; }
         #ui {
             position: fixed;
-            top: 16px;
-            left: 16px;
+            top: calc(16px + env(safe-area-inset-top, 0px));
+            left: calc(16px + env(safe-area-inset-left, 0px));
+            max-width: calc(100% - 32px - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+            box-sizing: border-box;
             padding: 12px 16px;
-            background: rgba(255, 255, 255, 0.72);
+            background: var(--panel);
             border-radius: 12px;
-            color: #2b3a42;
+            color: var(--ink);
             backdrop-filter: blur(6px);
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.12);
             pointer-events: none;
             user-select: none;
         }
-        #ui h1 { margin: 0 0 4px; font-size: 18px; }
+        #ui h1 { margin: 0 0 4px; font-size: 18px; text-wrap: balance; }
         #ui p { margin: 0; font-size: 13px; opacity: 0.8; }
+        .hint-touch { display: none; }
+        @media (hover: none) and (pointer: coarse) {
+            .hint-mouse { display: none; }
+            .hint-touch { display: inline; }
+        }
         #resetCam {
             position: fixed;
-            right: 16px;
-            bottom: 16px;
+            right: calc(16px + env(safe-area-inset-right, 0px));
+            bottom: calc(16px + env(safe-area-inset-bottom, 0px));
             padding: 10px 18px;
             border: 0;
             border-radius: 10px;
-            background: #c41c1c;
-            color: #fff;
-            font-size: 14px;
-            font-weight: 600;
+            background: var(--flag-red);
+            color: var(--on-red);
+            font: 600 14px var(--font-ui);
             cursor: pointer;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
         }
-        #resetCam:hover { background: #d83030; }
+        #resetCam:hover { background: var(--flag-red-hover); }
+        #resetCam:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; }
+        @media (max-width: 480px) {
+            #ui h1 { font-size: 16px; }
+            #ui p { font-size: 12px; }
+        }
     </style>
 </head>
 <body>
     <div id="ui">
         <h1>體素骷髏島 Voxel Skull Island</h1>
-        <p>左鍵拖曳旋轉 · 滾輪縮放 · 右鍵平移</p>
+        <p><span class="hint-mouse">左鍵拖曳旋轉 · 滾輪縮放 · 右鍵平移</span><span class="hint-touch">單指旋轉 · 雙指縮放與平移</span></p>
     </div>
     <button id="resetCam">重置視角</button>
 
@@ -91,11 +115,17 @@
         controls.maxPolarAngle = Math.PI / 2 - 0.04; // 防止穿入地底
         controls.update();
 
-        document.getElementById('resetCam').addEventListener('click', () => {
-            camera.position.copy(defaultCamPos);
+        // 直式螢幕 (手機) 時把相機往後拉讓整座島入鏡，並同步減淡霧氣
+        const defaultOffset = new THREE.Vector3().subVectors(defaultCamPos, defaultTarget);
+        const viewFactor = () => THREE.MathUtils.clamp(1.6 / camera.aspect, 1, 2.4);
+        function resetView() {
+            camera.position.copy(defaultTarget).addScaledVector(defaultOffset, viewFactor());
             controls.target.copy(defaultTarget);
             controls.update();
-        });
+            scene.fog.density = 0.012 / viewFactor();
+        }
+        resetView();
+        document.getElementById('resetCam').addEventListener('click', resetView);
 
         // 2. 光影系統 (左上角溫暖陽光 + 天空環境光)
         const hemiLight = new THREE.HemisphereLight(0xdff4ff, 0x9c7a54, 0.75);
@@ -735,12 +765,13 @@
 
         // 16. 動畫迴圈
         const clock = new THREE.Clock();
+        const motionScale = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0.25 : 1;
         const flagPos = flag.geo.attributes.position;
         const waterPos = waterGeo.attributes.position;
 
         function animate() {
-            const dt = Math.min(clock.getDelta(), 0.05);
-            const t = clock.elapsedTime;
+            const dt = Math.min(clock.getDelta(), 0.05) * motionScale;
+            const t = clock.elapsedTime * motionScale;
 
             // 海浪
             for (let i = 0; i < waterPos.count; i++) {
@@ -806,6 +837,7 @@
             camera.aspect = window.innerWidth / window.innerHeight;
             camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
+            scene.fog.density = 0.012 / viewFactor();
         });
     </script>
 </body>
