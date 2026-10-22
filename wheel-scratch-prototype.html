@@ -73,10 +73,10 @@ td:first-child{white-space:nowrap}
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow">轉盤刮刮樂 · prototype v0.4 · 2026-10-22</div>
+      <div class="eyebrow">轉盤刮刮樂 · prototype v0.5 · 2026-10-22</div>
       <h1>轉盤 × 刮刮樂 <span>原型</span></h1>
     </div>
-    <p class="lead">壓住轉盤開始轉，放開後停在哪把槍，那把槍就自動對刮刮卡開槍，打到的格子刮開、收下數字。一般槍打一格，散彈一次打多格，狙擊打中 ×2，冰凍槍先把格子凍住、再被打中就碎開彈射別格，炸彈丟下去十字炸開、炸過的格子 ×2。卡片正中間是金磚，打越多下特效越多，隨時可能爆開變成地雷把整張卡全收。轉數用完或卡片收光就結算。</p>
+    <p class="lead">壓住轉盤開始轉，放開後停在哪把槍，那把槍就自動對刮刮卡開槍，打到的格子刮開、收下數字。一般槍打一格，散彈一次打多格，狙擊打中 ×2，冰凍槍先把格子凍住、再被打中就碎開彈射別格，炸彈丟下去十字炸開、炸過的格子 ×2。卡片正中間是金磚，打越多下特效越多；金磚一爆開，就把卡片上已經開出來的數字全部吸進去、再收一次，然後這張卡結束。轉數用完或卡片收光也會結算。</p>
   </header>
 
   <div class="grid">
@@ -131,7 +131,7 @@ td:first-child{white-space:nowrap}
           <label for="cfg-bombx">炸過倍率</label>
           <div class="unit"><input id="cfg-bombx" type="number" min="1" max="10" step="0.5" value="2"><span>倍</span></div>
 
-          <div class="sec">金磚 → 地雷</div>
+          <div class="sec">金磚爆開</div>
           <label for="cfg-g0">第 1 下爆開</label>
           <div class="unit"><input id="cfg-g0" type="number" min="0" max="100" value="10"><span>%</span></div>
           <label for="cfg-ginc">每多打一下</label>
@@ -143,7 +143,7 @@ td:first-child{white-space:nowrap}
           <label for="cfg-autogold">打金磚機率</label>
           <div class="unit"><input id="cfg-autogold" type="number" min="0" max="100" value="30"><span>%</span></div>
         </form>
-        <p class="note">要測某把槍：其他槍的權重設 0。要測地雷：按「觸發金磚爆開」，或把必爆設 1。要看整張自己跑完：打開自動連轉。炸彈十字設 4＝整排整欄。</p>
+        <p class="note">要測某把槍：其他槍的權重設 0。要測金磚吸收：先轉幾槍開出數字，再按「觸發金磚爆開」，或把必爆設 1。要看整張自己跑完：打開自動連轉。炸彈十字設 4＝整排整欄。</p>
       </div>
       <div class="box">
         <h2>事件紀錄</h2>
@@ -176,7 +176,7 @@ td:first-child{white-space:nowrap}
     <div class="head">
       <div class="tt"><span class="brick" style="background:var(--gun-i)"></span>冰凍槍</div>
       <p class="rule">打中的格子先翻開數字、凍成冰塊，先不收。冰塊被任何槍或碎冰再打中一次就碎開：收下那格，碎冰彈射到其他 3 格（可調），打到別的冰塊會連鎖。</p>
-      <p>冰凍槍打到金磚當一般命中，不會把金磚凍住。卡片結束時沒打碎的冰塊融化照收。</p>
+      <p>冰凍槍打到金磚當一般命中，不會把金磚凍住。卡片結束時沒打碎的冰塊融化照收；金磚爆開時則一起被吸收。</p>
     </div>
     <div class="head">
       <div class="tt"><span class="brick" style="background:var(--gun-b)"></span>炸彈</div>
@@ -184,8 +184,8 @@ td:first-child{white-space:nowrap}
       <p>炸到冰塊：那格 ×2 再碎開。炸到金磚：倍率幾倍算幾下。已經收掉的格子火焰直接穿過。自動瞄準會挑十字範圍內格子多的位置丟。</p>
     </div>
     <div class="head">
-      <div class="tt"><span class="brick" style="background:var(--gold)"></span>金磚 → 地雷</div>
-      <p class="rule">卡片正中間。每被打中一下就判定一次爆開：第 1 下 10%，之後每下 +15%，第 5 下必爆（參數）。爆開後變成地雷，炸開時把所有還沒收的格子（含冰塊）全收，這張卡直接結算。</p>
+      <div class="tt"><span class="brick" style="background:var(--gold)"></span>金磚 → 吸收</div>
+      <p class="rule">卡片正中間。每被打中一下就判定一次爆開：第 1 下 10%，之後每下 +15%，第 5 下必爆（參數）。爆開後把卡片上已經開出來的數字（含冰塊裡的）由近到遠一個個吸進金磚，吸到的總和再收一次，然後這張卡直接結算；還沒開的格子不算。所以金磚越晚爆，吸得越多。</p>
       <p>沒爆的時候特效一層層加：裂痕 → 光暈 → 抖動冒火星 → 閃電。右上角顯示下一下的爆開機率。</p>
     </div>
   </div>
@@ -203,11 +203,11 @@ td:first-child{white-space:nowrap}
         <tr><td>冰塊懸念</td><td>被凍住的格子看得到數字但還沒收，等下一槍打碎才收；碎冰再打別格，打到別的冰塊會連鎖。</td></tr>
         <tr><td>金磚越打越亮</td><td>每打一下特效加一層：裂痕 → 光暈 → 抖動冒火星 → 閃電；右上角顯示下一下的爆開機率。</td></tr>
         <tr><td>假失敗</td><td>每次打中金磚都先膨脹、心跳（打越多下心跳越多下），沒爆就冒煙「撐住了…」。</td></tr>
-        <tr><td>地雷倒數</td><td>金磚爆開露出地雷，紅燈越閃越快，最後衝擊波由中心往外，逐格掀開全收。</td></tr>
+        <tr><td>金磚吸收</td><td>金磚爆開後發光變大、外圈旋轉，已開的數字由近到遠一個個飛進金磚，照節拍、音高往上爬，金磚上方的總和一路跳；吸完再爆一次金光、跳總分和弦。</td></tr>
         <tr><td>結束不落差</td><td>轉數用完時先把冰塊融化收下，再把沒打到的格子翻開（變暗，不算分），最後跳結算明細。</td></tr>
-        <tr><td>收錢節拍</td><td>一槍打到好幾格時不再同時跳分：每格的 +分照固定節拍一格一格入帳，音高一路往上爬；地雷全收就是一長串等速上行。</td></tr>
+        <tr><td>收錢節拍</td><td>一槍打到好幾格時不再同時跳分：每格的 +分照固定節拍一格一格入帳，音高一路往上爬；金磚吸收也走同一個節拍。</td></tr>
         <tr><td>每槍收尾</td><td>打到 2 格以上，最後一格入帳後跳「+這一槍總分」配一個和弦，收得多和弦更長、畫面閃一下，然後才能轉下一轉。</td></tr>
-        <tr><td>頓格</td><td>大衝擊瞬間畫面停一下下（狙擊命中、炸彈炸開、冰塊碎、金磚爆、地雷炸、最大獎落定），讓重拍更有力。</td></tr>
+        <tr><td>頓格</td><td>大衝擊瞬間畫面停一下下（狙擊命中、炸彈炸開、冰塊碎、金磚爆開、吸收完炸金光、最大獎落定），讓重拍更有力。</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -228,9 +228,10 @@ td:first-child{white-space:nowrap}
         <tr><td>炸彈「炸過 ×2」</td><td>炸到的當下那格就 ×2 收。另一種讀法是「炸過的格子留記號，之後再被打中才 ×2」，還沒做。</td><td><span class="pill">原型假設</span></td></tr>
         <tr><td>炸彈十字多大</td><td>中心加上下左右各 1 格；可調到 4＝整排整欄。</td><td><span class="pill">原型預設</span></td></tr>
         <tr><td>金磚爆開機率曲線</td><td>第 1 下 10%，每下 +15%，第 5 下必爆。</td><td><span class="pill">原型預設</span></td></tr>
-        <tr><td>地雷全收之後</td><td>收完整張卡直接結算，剩下的轉數作廢。也可以改成換新卡繼續轉。</td><td><span class="pill">原型假設</span></td></tr>
-        <tr><td>金磚本身值多少</td><td>金磚本身不給分，價值在「地雷全收」。</td><td><span class="pill">原型假設</span></td></tr>
-        <tr><td>槍、金磚、地雷、轉盤美術</td><td>程式畫的方塊造型，音效即時合成。</td><td><span class="pill">佔位美術</span></td></tr>
+        <tr><td>金磚爆開做什麼</td><td>吸收卡片上已開的數字、收回後結束（yichonezhu 10/22 改規格，取代原本的地雷全收），剩下的轉數作廢。</td><td><span class="pill">已定</span></td></tr>
+        <tr><td>吸收怎麼算</td><td>照畫面上顯示的值算（×2 過的算翻倍後），冰塊裡還沒收的數字也吸；吸到的總和再加一次獎，數字從卡片上消失。還沒開的格子不算。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>金磚本身值多少</td><td>金磚本身不給分，價值在吸收到的數字總和。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>槍、金磚、炸彈、轉盤美術</td><td>程式畫的方塊造型，音效即時合成。</td><td><span class="pill">佔位美術</span></td></tr>
       </tbody>
     </table></div>
   </div>
@@ -241,6 +242,7 @@ td:first-child{white-space:nowrap}
     <div class="tbl"><table>
       <thead><tr><th>日期</th><th>誰</th><th>改了什麼</th></tr></thead>
       <tbody>
+        <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.5：金磚爆開改規格：不再變地雷全收，改成把卡片上已開的數字一個個吸進金磚、總和再收一次，然後結束（還沒開的格子不算）。</td></tr>
         <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.4：轉盤加「炸彈」（丟出、引信、十字炸開，炸過 ×2）；節奏：多格命中照節拍逐格入帳、音高上爬，每槍收尾跳這一槍總分，大衝擊加頓格，地雷全收改成等速連發。</td></tr>
         <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.3：轉盤停下就自動開槍（拿掉玩家點格子）；節奏加快：放開後減速 0.8 秒、槍落地即開、狙擊推近縮短、數字滾動與金磚／地雷演出縮短。</td></tr>
         <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.2：轉盤改成壓住轉、放開停；停下看到槍就自動瞄準開槍（預設自動瞄準，拿掉左右找位置）。</td></tr>
@@ -286,7 +288,7 @@ const GUNS = {
   bomb: { name: '炸彈', short: '炸彈', color: '#c08cff', fill: '#7a4bc2', dark: '#2e1a4f' },
 };
 const GUN_LEN = { normal: 30, shot: 34, snipe: 50, ice: 32, bomb: 22 };
-const SRCNAME = { normal: '一般槍', shot: '散彈', snipe: '狙擊', ice: '冰凍槍', shard: '碎冰', mine: '地雷', melt: '融化', bomb: '炸彈' };
+const SRCNAME = { normal: '一般槍', shot: '散彈', snipe: '狙擊', ice: '冰凍槍', shard: '碎冰', mine: '金磚吸收', melt: '融化', bomb: '炸彈' };
 const SRC_TAG = { normal: 'normal', shot: 'shot', snipe: 'snipe', ice: 'ice', shard: 'ice', mine: 'mine', melt: 'ice', bomb: 'bomb' };
 const SRC_COLOR = { normal: '#d8cfc2', shot: '#ff8a3d', snipe: '#ff5d73', ice: '#62d6ff', shard: '#bff0ff', mine: '#ff5a2a', melt: '#62d6ff', bomb: '#c08cff' };
 function gunDesc(k) { return k === 'normal' ? '打一格' : k === 'shot' ? (cfg.shotMode === 'pierce' ? `直線貫穿 ${cfg.shotN} 格` : `散開打 ${cfg.shotN} 格`) : k === 'snipe' ? `打中 ×${cfg.snipeX}` : k === 'bomb' ? `十字炸，炸過 ×${cfg.bombX}` : '凍住，再被打就碎開'; }
@@ -344,7 +346,7 @@ function readCfg() {
 const goldP = h => h >= cfg.gMust ? 1 : clamp(cfg.g0 + cfg.gInc * (h - 1), 0, 1);
 
 // ---------- event log ----------
-const logEl = document.getElementById('log'), TAGS = { wheel: '轉盤', normal: '一般', shot: '散彈', snipe: '狙擊', ice: '冰凍', gold: '金磚', mine: '地雷', bomb: '炸彈', win: '結算', sys: '腳本' };
+const logEl = document.getElementById('log'), TAGS = { wheel: '轉盤', normal: '一般', shot: '散彈', snipe: '狙擊', ice: '冰凍', gold: '金磚', mine: '吸收', bomb: '炸彈', win: '結算', sys: '腳本' };
 function log(msg, tag = 'sys') { const li = document.createElement('li'); li.className = 't-' + tag; li.innerHTML = `<span class="tg">${TAGS[tag] || tag}</span><span>${msg}</span>`; logEl.prepend(li); while (logEl.children.length > 120) logEl.lastChild.remove(); }
 
 // ---------- sound (synthesized, starts after first click) ----------
@@ -374,7 +376,6 @@ const SFX = (() => {
     scratch() { noise(.09, .14, 2500, 6000, .8); },
     clang(h) { tone(880 + h * 50, .45, 'triangle', .08); tone(1320 + h * 70, .38, 'sine', .05); noise(.05, .2, 6500, null, 1, 'highpass'); },
     puff() { noise(.35, .14, 700, 180, .7, 'lowpass'); },
-    beep() { tone(1250, .07, 'square', .06); },
     boom() { noise(1.1, .75, 900, 50, .4, 'lowpass'); tone(70, .9, 'sine', .5, 24); },
     stamp() { tone(220, .1, 'square', .08, 110); noise(.06, .2, 1500); },
     cash(n) { const sc = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24], L = sc.length, i = n <= L ? n - 1 : (n - L) % 2 ? L - 2 : L - 1, f = 523 * Math.pow(2, sc[i] / 12); tone(f, .09, 'square', .03); tone(f * 2, .07, 'sine', .02, null, .02); }, // climbs a pentatonic scale, then trills on the top two notes
@@ -394,7 +395,7 @@ function shoot(x0, y0, x1, y1, dur, kind, color, arc = 0) { return new Promise(r
 function cancelAll() { timers = []; tweens = []; projs = []; }
 
 // ---------- state & particles ----------
-const S = { phase: 'ready', t: 0, shake: 0, flash: 0, pops: [], beams: [], rings: [], flyers: [], flames: [], bomb: null, cashQ: [], cashT: 0, shot: { sum: 0, n: 0 }, hitstop: 0, banner: null, settle: null, lock: null, laser: null, scope: null, autoSpin: false, cam: { x: 480, y: 270, z: 1 } };
+const S = { phase: 'ready', t: 0, shake: 0, flash: 0, pops: [], beams: [], rings: [], flyers: [], flames: [], absorbs: [], bomb: null, cashQ: [], cashT: 0, shot: { sum: 0, n: 0 }, hitstop: 0, banner: null, settle: null, lock: null, laser: null, scope: null, autoSpin: false, cam: { x: 480, y: 270, z: 1 } };
 const GN = { k: null, x: 650, y: 508, ang: 0, sc: 1, vis: false, flash: 0, recoil: 0 };
 const parts = [];
 function addP(o) { const p = Object.assign({ kind: 'sq', vx: 0, vy: 0, g: 0, life: 1, size: 4, color: '#fff', rot: R(0, TAU), vr: R(-8, 8) }, o); p.max = p.life; parts.push(p); }
@@ -405,7 +406,7 @@ function pop(text, x, y, color, size = 22) { S.pops.push({ text, x, y, color, si
 function banner(text, color, sub) { S.banner = { text, color, sub, t: 0, max: .8 }; }
 function hitstop(s) { S.hitstop = Math.max(S.hitstop, s); }
 async function drained() { while (S.cashQ.length) await wait(.03); }
-const PAY_BEAT = 1 / 15; // seconds between cash-ins; the mine sweep uses the same beat
+const PAY_BEAT = 1 / 15; // seconds between cash-ins; the gold absorb uses the same beat
 
 // ---------- board ----------
 const G = { n: 5, cw: 68, gap: 6, x0: 0, y0: 0, tw: 0, cells: [], gold: null, colGlow: [], total: 0, shown: 0, stats: {}, spinsLeft: 0, spinsTotal: 0, spinNo: 0, cleared: false };
@@ -420,7 +421,7 @@ function newBoard() {
     const gold = r === mid && c === mid;
     G.cells.push({ r, c, x: colX(c), y: G.y0 + r * (G.cw + G.gap) + G.cw / 2, kind: gold ? 'gold' : 'num', v: gold ? 0 : wpick(cfg.pool, cfg.poolW), st: 'cover', shown: 0, coverA: 1, iceA: 0, f: 0, fc: '#fff', dy: 0, res: false, by: null, roll: null });
   }
-  G.gold = { cell: G.cells.find(c => c.kind === 'gold'), hits: 0, st: 'intact', sc: 1, pulse: 0, blink: 0, mineSc: 0, zap: 0, bolt: null, boltLife: 0, twinkle: null, cracks: makeCracks() };
+  G.gold = { cell: G.cells.find(c => c.kind === 'gold'), hits: 0, st: 'intact', sc: 1, pulse: 0, zap: 0, sum: 0, absorbN: 0, bolt: null, boltLife: 0, twinkle: null, cracks: makeCracks() };
   G.colGlow = new Array(n).fill(0);
   Object.assign(G, { total: 0, shown: 0, stats: {}, spinsLeft: cfg.spins, spinsTotal: cfg.spins, spinNo: 0, cleared: false });
 }
@@ -525,33 +526,39 @@ async function doGoldHit(src, note = '') {
   await tween(g, { sc: 1 }, .08, EZ.out); g.st = 'intact';
   log(`金磚撐住了，下一下 ${pct(goldP(h + 1))}`, 'gold');
 }
+// Gold burst: every number already opened on the card (ice included) flies into the gold one per beat,
+// the gold pays their total once more, and the card ends. Unopened cells don't count.
 async function goldExplode() {
-  const g = G.gold, c = g.cell; if (g.st === 'burst' || g.st === 'mine' || g.st === 'crater') return;
-  g.st = 'burst'; G.cleared = true;
+  const g = G.gold, c = g.cell; if (g.st !== 'intact' && g.st !== 'tension') return;
+  g.st = 'burst'; G.cleared = true; g.sum = 0; g.absorbN = 0;
   S.flash = 1; S.shake = .6; SFX.boom(); hitstop(.12);
-  for (let i = 0; i < 26; i++) { const a = R(0, TAU), s = R(120, 420); addP({ kind: 'gold', x: c.x, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, g: 700, life: R(.6, 1.1), size: R(6, 12), color: pick(['#ffd34d', '#ffe88a', '#e0a92a', '#b07a12']) }); }
-  banner('金磚爆開！', '#ffd34d', '變成地雷…');
-  log('金磚爆開 → 變成地雷', 'mine');
-  await wait(.25);
-  g.st = 'mine'; g.mineSc = 0; SFX.land(); await tween(g, { mineSc: 1 }, .2, EZ.back);
-  for (const t of [.22, .16, .12, .09, .07, .05]) { g.blink = 1; SFX.beep(); await wait(t); }
-  g.st = 'crater'; S.flash = 1.2; S.shake = 1; SFX.boom(); hitstop(.14);
-  S.rings.push({ x: c.x, y: c.y, t: 0, dur: .9, max: 560, color: '#ff8a3d' }, { x: c.x, y: c.y, t: -.12, dur: .9, max: 520, color: '#ffd34d' });
-  burst(c.x, c.y, '#ff8a3d', 30, 380); burst(c.x, c.y, '#ffd34d', 20, 300);
-  for (let i = 0; i < 12; i++) addP({ kind: 'smoke', x: c.x + R(-20, 20), y: c.y + R(-20, 20), vx: R(-60, 60), vy: R(-80, -20), life: R(.8, 1.4), size: R(8, 14), color: '#5a4a40' });
+  S.rings.push({ x: c.x, y: c.y, t: 0, dur: .5, max: 160, color: '#ffd34d' });
+  for (let i = 0; i < 18; i++) { const a = R(0, TAU), s = R(80, 260); addP({ kind: 'gold', x: c.x, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 80, g: 500, life: R(.4, .8), size: R(5, 10), color: pick(['#ffd34d', '#ffe88a', '#e0a92a']) }); }
+  banner('金磚爆開！', '#ffd34d', '吸收已開的數字');
+  log('金磚爆開 → 吸收已開的數字', 'mine');
+  // hits already in flight finish revealing and paying out first, so they get absorbed too
+  while (G.cells.some(x => x.roll || x.st === 'rolling' || x.st === 'freezing' || x.st === 'shatter')) await wait(.03);
+  await drained(); await wait(.25);
+  g.st = 'core';
   const dist = x => Math.hypot(x.x - c.x, x.y - c.y);
-  const list = G.cells.filter(x => x.kind === 'num' && (x.st === 'cover' || x.st === 'ice')).sort((a, b) => dist(a) - dist(b));
-  let sum = 0;
-  for (const x of list) { sum += mineCollect(x); await wait(PAY_BEAT); } // nearest first, one cell per beat: an even drumroll
-  await drained();
-  if (list.length) { banner(`地雷全收 +${fmt(sum)}`, '#ff8a3d', `${list.length} 格一次收下`); SFX.chord(true); } else banner('地雷炸開', '#ff8a3d', '卡片已經收光了');
-  log(`地雷全收 ${list.length} 格 → +${fmt(sum)}`, 'mine');
-  await wait(.5);
-}
-function mineCollect(x) {
-  const wasIce = x.st === 'ice'; x.st = 'done'; x.res = false; x.shown = x.v; x.iceA = 0; x.dy = -8;
-  tween(x, { coverA: 0 }, .12); burst(x.x, x.y, wasIce ? '#bff0ff' : '#d8d3cc', 8, 160, wasIce ? 'ice' : 'flake');
-  collect(x, x.v, 'mine'); return x.v;
+  const list = G.cells.filter(x => x.kind === 'num' && (x.st === 'done' || x.st === 'ice')).sort((a, b) => dist(a) - dist(b));
+  for (const x of list) { // nearest first, one number per beat
+    const val = x.st === 'ice' ? x.v : (x.shown || x.v);
+    x.st = 'absorbed'; x.iceA = 0; x.f = 1; x.fc = '#ffd34d';
+    S.absorbs.push({ x0: x.x, y0: x.y, x1: c.x, y1: c.y, t: 0, dur: .3, text: fmt(val), color: valColor(val) });
+    SFX.cash(++g.absorbN);
+    wait(.3).then(() => { g.sum += val; g.pulse = 1; burst(c.x, c.y, '#ffd34d', 4, 110); });
+    await wait(PAY_BEAT);
+  }
+  await wait(.35);
+  const sum = g.sum; g.st = 'crater';
+  S.flash = 1; S.shake = .7; SFX.boom(); hitstop(.12);
+  S.rings.push({ x: c.x, y: c.y, t: 0, dur: .8, max: 520, color: '#ffd34d' });
+  for (let i = 0; i < 30; i++) { const a = R(0, TAU), s = R(140, 440); addP({ kind: 'gold', x: c.x, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, g: 700, life: R(.6, 1.1), size: R(6, 12), color: pick(['#ffd34d', '#ffe88a', '#e0a92a', '#b07a12']) }); }
+  if (sum > 0) { collect(c, sum, 'mine'); await drained(); banner(`金磚吸收 +${fmt(sum)}`, '#ffd34d', `收回 ${list.length} 個已開的數字`); SFX.chord(true); }
+  else banner('金磚爆開', '#ffd34d', '卡片上還沒有已開的數字');
+  log(`金磚吸收 ${list.length} 個數字 → +${fmt(sum)}`, 'mine');
+  await wait(.6);
 }
 
 // ---------- turn flow ----------
@@ -693,7 +700,7 @@ async function endCard(reason) {
     log(`沒打到的 ${covers.length} 格翻開給你看（不算分）`);
   }
   await wait(.35);
-  const why = { mine: '地雷全收！', clear: '整張收光', spins: '轉數用完' }[reason];
+  const why = { mine: '金磚吸收！', clear: '整張收光', spins: '轉數用完' }[reason];
   S.settle = { value: G.total, t: 0, why }; SFX.win(); S.flash = .5;
   log(`結算 ${fmt(G.total)}（${why}）`, 'win');
 }
@@ -707,7 +714,7 @@ async function forceGold() {
 }
 function restart() {
   cancelAll(); readCfg(); parts.length = 0; goldQ = Promise.resolve();
-  Object.assign(S, { phase: 'ready', settle: null, pops: [], beams: [], rings: [], flyers: [], flames: [], bomb: null, cashQ: [], cashT: 0, shot: { sum: 0, n: 0 }, hitstop: 0, banner: null, lock: null, laser: null, scope: null, flash: 0, shake: 0, cam: { x: 480, y: 270, z: 1 } });
+  Object.assign(S, { phase: 'ready', settle: null, pops: [], beams: [], rings: [], flyers: [], flames: [], absorbs: [], bomb: null, cashQ: [], cashT: 0, shot: { sum: 0, n: 0 }, hitstop: 0, banner: null, lock: null, laser: null, scope: null, flash: 0, shake: 0, cam: { x: 480, y: 270, z: 1 } });
   GN.vis = false; GN.k = null; WH.spinning = false; WH.w = 0; buildWheel();
   newBoard(); log(`新的一張卡：${cfg.size}×${cfg.size}，${cfg.spins} 轉`);
 }
@@ -754,6 +761,7 @@ function update(dt) {
   if (S.scope) S.scope.p = Math.max(0, S.scope.p - dt * 3);
   if (S.bomb) S.bomb.blink = Math.max(0, S.bomb.blink - dt * 6);
   S.flames = S.flames.filter(f => (f.t += dt) < f.dur);
+  S.absorbs = S.absorbs.filter(a => (a.t += dt) < a.dur);
   S.cashT -= dt; if (S.cashQ.length && S.cashT <= 0) { payOut(S.cashQ.shift()); S.cashT = PAY_BEAT; }
   for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; if (p.life <= 0) { parts.splice(i, 1); continue; } p.vy += p.g * dt; if (p.kind === 'smoke') p.vx *= 1 - dt * 1.5; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; }
   if (S.phase === 'hold') { WH.w = Math.min(18, WH.w + 40 * dt); WH.a += WH.w * dt; }
@@ -773,9 +781,9 @@ function update(dt) {
   }
   const g = G.gold;
   if (g) {
-    g.pulse = Math.max(0, g.pulse - dt * 2.5); g.blink = Math.max(0, g.blink - dt * 5); g.boltLife -= dt;
-    if (g.st === 'intact' || g.st === 'tension') {
-      const L = g.hits, c = g.cell;
+    g.pulse = Math.max(0, g.pulse - dt * 2.5); g.boltLife -= dt;
+    if (g.st === 'intact' || g.st === 'tension' || g.st === 'core') {
+      const L = g.st === 'core' ? 5 : g.hits, c = g.cell;
       if (L >= 3 && Math.random() < dt * (4 + L * 3)) addP({ kind: 'ember', x: c.x + R(-22, 22), y: c.y + R(-8, 8), vx: R(-10, 10), vy: R(-60, -30), g: -10, life: R(.6, 1.1), size: R(2, 4), color: pick(['#ffb347', '#ff7a2a', '#ffd34d']) });
       if (L >= 4 && (g.zap -= dt) <= 0) { g.zap = R(.08, .25); g.bolt = makeBolt(c); g.boltLife = .1; }
       if (!g.twinkle && Math.random() < dt * 1.2) g.twinkle = { x: R(-.4, .4), y: R(-.45, .1), t: 0 };
@@ -857,7 +865,8 @@ function drawCells() {
     if (c.kind === 'gold') continue;
     const x = c.x - w / 2, y = c.y - w / 2 + c.dy;
     ctx.fillStyle = '#1b1411'; rrect(x, y, w, w, 4); ctx.fill();
-    if (c.st !== 'cover' || c.coverA < 1) {
+    if (c.st === 'absorbed') { ctx.strokeStyle = 'rgba(255,211,77,.35)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.arc(c.x, c.y, w * .22, 0, TAU); ctx.stroke(); }
+    else if (c.st !== 'cover' || c.coverA < 1) {
       const s = String(c.shown || c.v), done = c.st === 'done', missed = c.st === 'missed';
       ctx.globalAlpha = missed ? .32 : done ? .62 : 1;
       const top = !missed && isTop(+s); if (top) { ctx.shadowColor = '#ff5a2a'; ctx.shadowBlur = 12; }
@@ -870,29 +879,18 @@ function drawCells() {
     if (c.f > 0) { ctx.globalAlpha = c.f * .5; ctx.fillStyle = c.fc; rrect(x, y, w, w, 4); ctx.fill(); ctx.globalAlpha = 1; }
   }
 }
-function drawMine(x, y, r, blink) {
-  if (r <= 0) return;
-  ctx.save(); ctx.translate(x, y);
-  ctx.fillStyle = '#2b2b2b'; for (let i = 0; i < 8; i++) { ctx.save(); ctx.rotate(i / 8 * TAU); ctx.fillRect(-3, -r - 7, 6, 10); ctx.restore(); }
-  const gr = ctx.createRadialGradient(-r * .35, -r * .35, 2, 0, 0, r); gr.addColorStop(0, '#6a6a6a'); gr.addColorStop(1, '#141414'); ctx.fillStyle = gr; circle(0, 0, r);
-  ctx.fillStyle = '#3a3a3a'; ctx.fillRect(-r, -2, r * 2, 4);
-  if (blink > 0) { const lg = ctx.createRadialGradient(0, -r * .5, 1, 0, -r * .5, r * 1.8); lg.addColorStop(0, `rgba(255,60,40,${.75 * blink})`); lg.addColorStop(1, 'rgba(255,60,40,0)'); ctx.fillStyle = lg; circle(0, -r * .5, r * 1.8); }
-  ctx.fillStyle = blink > 0 ? '#ff4a2a' : '#6a1a12'; circle(0, -r * .5, r * .22);
-  ctx.restore();
-}
 function drawGoldCell() {
   const g = G.gold; if (!g) return; const c = g.cell, w = G.cw;
   ctx.fillStyle = '#1b1411'; rrect(c.x - w / 2, c.y - w / 2, w, w, 4); ctx.fill();
   if (g.st === 'crater') {
-    const gr = ctx.createRadialGradient(c.x, c.y, 2, c.x, c.y, w * .6); gr.addColorStop(0, '#000'); gr.addColorStop(.6, '#3a1a0c'); gr.addColorStop(1, 'rgba(58,26,12,0)'); ctx.fillStyle = gr; circle(c.x, c.y, w * .6);
-    txt('地雷', c.x, c.y, 12, 'rgba(255,138,61,.6)', 'center', 900); return;
+    const gr = ctx.createRadialGradient(c.x, c.y, 2, c.x, c.y, w * .6); gr.addColorStop(0, '#000'); gr.addColorStop(.6, '#3a2a0c'); gr.addColorStop(1, 'rgba(58,42,12,0)'); ctx.fillStyle = gr; circle(c.x, c.y, w * .6);
+    txt('吸收', c.x, c.y, 12, 'rgba(255,211,77,.6)', 'center', 900); return;
   }
-  if (g.st === 'mine') { drawMine(c.x, c.y + 4, w * .3 * g.mineSc, g.blink); return; }
-  if (g.st === 'burst') return;
-  const L = g.hits, jit = L >= 3 && !REDUCED ? (L - 2) * .9 : 0;
+  const absorbing = g.st === 'burst' || g.st === 'core';
+  const L = absorbing ? 5 : g.hits, jit = L >= 3 && !REDUCED ? (L - 2) * .9 : 0;
   const ga = clamp(.1 + L * .17, 0, .85) * (.75 + .25 * Math.sin(S.t * (3 + L * 1.5))), ar = w * (.7 + L * .1);
   const gr = ctx.createRadialGradient(c.x, c.y, w * .15, c.x, c.y, ar); gr.addColorStop(0, `rgba(255,205,70,${ga})`); gr.addColorStop(1, 'rgba(255,205,70,0)'); ctx.fillStyle = gr; circle(c.x, c.y, ar);
-  ctx.save(); ctx.translate(c.x + R(-jit, jit), c.y + R(-jit, jit)); const s = g.sc * (1 + g.pulse * .04); ctx.scale(s, s);
+  ctx.save(); ctx.translate(c.x + R(-jit, jit), c.y + R(-jit, jit)); const s = g.sc * (1 + g.pulse * .04) * (absorbing ? 1.12 + Math.min(.35, g.absorbN * .02) : 1); ctx.scale(s, s);
   const bw = w * 1.04, bh = w * .64;
   const top = [[-bw * .34, -bh * .5], [bw * .34, -bh * .5], [bw * .5, -bh * .08], [-bw * .5, -bh * .08]];
   const front = [[-bw * .5, -bh * .08], [bw * .5, -bh * .08], [bw * .46, bh * .42], [-bw * .46, bh * .42]];
@@ -911,6 +909,12 @@ function drawGoldCell() {
   if (g.twinkle) { ctx.globalAlpha = Math.sin(Math.PI * g.twinkle.t / .5); ctx.fillStyle = '#fff'; star(g.twinkle.x * bw, g.twinkle.y * bh, 7, 1.5); ctx.globalAlpha = 1; }
   ctx.restore();
   if (g.bolt && g.boltLife > 0) { ctx.strokeStyle = '#d8f4ff'; ctx.lineWidth = 2; ctx.shadowColor = '#8fd8ff'; ctx.shadowBlur = 10; ctx.beginPath(); g.bolt.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.shadowBlur = 0; }
+  if (absorbing) { // spinning rings while it pulls numbers in, with the running total above
+    ctx.save(); ctx.translate(c.x, c.y); ctx.strokeStyle = 'rgba(255,211,77,.55)'; ctx.lineWidth = 2; ctx.setLineDash([8, 10]);
+    ctx.rotate(S.t * 4); ctx.beginPath(); ctx.arc(0, 0, w * .82, 0, TAU); ctx.stroke();
+    ctx.rotate(-S.t * 7); ctx.beginPath(); ctx.arc(0, 0, w * .62, 0, TAU); ctx.stroke(); ctx.setLineDash([]); ctx.restore();
+    if (g.sum > 0) txt('+' + fmt(g.sum), c.x, c.y - w * .8, 20, '#ffd34d', 'center', 700, 'Silkscreen');
+  }
 }
 function crosshair(c, col, label) {
   const r = G.cw * .42; ctx.strokeStyle = col; ctx.lineWidth = 2.5;
@@ -975,6 +979,11 @@ function drawFx() {
     ctx.globalAlpha = 1 - k; ctx.fillStyle = gr; ctx.fillRect(f.x - s / 2, f.y - s / 2, s, s);
   }
   ctx.globalAlpha = 1;
+  for (const a of S.absorbs) { // opened numbers curving into the gold, speeding up and shrinking
+    const k = EZ.in(a.t / a.dur), o = Math.sin(Math.PI * k) * 26;
+    ctx.globalAlpha = 1 - k * .5; txt(a.text, lerp(a.x0, a.x1, k) + o, lerp(a.y0, a.y1, k) - o * .5, 20 - 8 * k, a.color, 'center', 700, 'Silkscreen');
+  }
+  ctx.globalAlpha = 1;
   const b = S.bomb;
   if (b) { // thrown in an arc toward the camera: grows mid-flight, shadow stays on the card
     const x = lerp(b.x0, b.x1, b.k), y = lerp(b.y0, b.y1, b.k), h = Math.sin(Math.PI * b.k), sc = 1.3 + h * .5 + b.blink * .2;
@@ -1026,7 +1035,7 @@ function drawHUD() {
     txt(now ? `金磚第 ${g.hits} 下 · 爆開機率` : `金磚 ${g.hits} 下 · 下一下爆開`, bx + 14, 56, 12, now ? '#ffd34d' : '#a6978a', 'left', now ? 700 : 500);
     ctx.fillStyle = '#2a221d'; ctx.fillRect(W - 112, 51, 56, 10); ctx.fillStyle = p >= .6 ? '#ffd34d' : '#d9a743'; ctx.fillRect(W - 112, 51, 56 * p, 10);
     txt(pct(p), W - 26, 56, 12, '#f1e7d6', 'right', 700, 'Silkscreen');
-  } else if (g) txt(g.st === 'crater' ? '金磚已爆開 · 地雷全收' : '金磚爆開中…', bx + 14, 56, 12, '#ff8a3d', 'left', 700);
+  } else if (g) txt(g.st === 'crater' ? '金磚已爆開 · 吸收完畢' : '金磚吸收中…', bx + 14, 56, 12, '#ff8a3d', 'left', 700);
 }
 function drawBanner() {
   const b = S.banner; if (!b) return;
@@ -1036,7 +1045,7 @@ function drawBanner() {
   if (b.sub) txt(b.sub, 650, 302, 14, '#f1e7d6', 'center', 700);
   ctx.globalAlpha = 1;
 }
-const SETTLE_ROWS = [['normal', '一般槍'], ['shot', '散彈槍'], ['snipe', '狙擊槍'], ['bomb', '炸彈'], ['ice', '冰塊打碎'], ['shard', '碎冰彈射'], ['mine', '地雷全收'], ['melt', '冰塊融化']];
+const SETTLE_ROWS = [['normal', '一般槍'], ['shot', '散彈槍'], ['snipe', '狙擊槍'], ['bomb', '炸彈'], ['ice', '冰塊打碎'], ['shard', '碎冰彈射'], ['mine', '金磚吸收'], ['melt', '冰塊融化']];
 function drawSettle() {
   const s = S.settle; if (!s) return; const a = clamp(s.t * 3, 0, 1);
   ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,7,5,.7)'; ctx.fillRect(0, 0, W, H);
