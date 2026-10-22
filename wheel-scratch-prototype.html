@@ -1,0 +1,1003 @@
+<title>轉盤刮刮樂 原型</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@700;900&family=Silkscreen:wght@400;700&display=swap">
+<style>
+/* 轉盤刮刮樂原型：左邊畫面＋按鈕，右邊腳本設定＋事件紀錄，下方規則與團隊文件。刻意只做深色單一主題。 */
+:root{
+  --soot:#14110e; --panel:#1d1915; --panel-2:#26201b; --line:#3a312a;
+  --ink:#f1e7d6; --muted:#a6978a; --ember:#ff8a3d; --brass:#d9a743;
+  --gun-n:#d8cfc2; --gun-s:#ff8a3d; --gun-x:#ff5d73; --gun-i:#62d6ff; --gold:#ffd34d; --mine:#ff5a2a; --card:#3c1d2c;
+  --display:"Noto Serif TC","Songti TC",serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --pix:"Silkscreen","Courier New",monospace;
+  color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{background:var(--soot);color:var(--ink)}
+body{font-family:var(--body);font-size:15px;line-height:1.6;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 48px}
+.wrap{max-width:1320px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 32px}
+.eyebrow{font-family:var(--pix);font-size:12px;letter-spacing:.12em;color:var(--brass);text-transform:uppercase}
+h1{font-family:var(--display);font-weight:900;font-size:clamp(30px,4.4vw,48px);line-height:1.1;margin:4px 0 0;text-wrap:balance}
+h1 span{color:var(--ember)}
+.lead{max-width:62ch;color:var(--muted);margin:0}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:20px;align-items:start}
+@media (max-width:980px){.grid{grid-template-columns:minmax(0,1fr)}}
+.stage{display:flex;flex-direction:column;gap:10px;min-width:0}
+canvas#stage{display:block;width:100%;aspect-ratio:16/9;max-width:100%;background:#0d0b09;border:2px solid var(--line);border-radius:4px;touch-action:none}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.bar .hint{color:var(--muted);font-size:13px;margin-left:auto}
+button{font:600 14px/1 var(--body);color:var(--ink);background:var(--panel-2);border:1px solid var(--line);border-radius:4px;padding:10px 14px;cursor:pointer}
+button:hover{border-color:var(--brass)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
+button.primary{background:var(--ember);border-color:var(--ember);color:#1b0f06;min-width:84px}
+button[aria-pressed="true"].toggle{border-color:var(--brass);color:var(--brass)}
+aside{display:flex;flex-direction:column;gap:16px;min-width:0}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 16px;min-width:0}
+.box h2{font-family:var(--pix);font-weight:700;font-size:12px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);margin:0 0 10px}
+.cfg{display:grid;grid-template-columns:auto minmax(0,1fr);gap:8px 12px;align-items:center}
+.cfg .sec{grid-column:1/-1;font-size:12px;font-weight:700;color:var(--brass);letter-spacing:.06em;border-top:1px dashed var(--line);padding-top:8px;margin-top:4px}
+.cfg .sec:first-child{border-top:0;padding-top:0;margin-top:0}
+.cfg label{font-size:13px;color:var(--muted)}
+.cfg input,.cfg select{width:100%;min-width:0;font:500 14px var(--body);color:var(--ink);background:var(--soot);border:1px solid var(--line);border-radius:3px;padding:6px 8px;font-variant-numeric:tabular-nums}
+.cfg .unit{display:flex;gap:6px;align-items:center;min-width:0}
+.cfg .unit input{flex:1 1 56px}
+.cfg .unit span{color:var(--muted);font-size:12px;white-space:nowrap}
+.cfg .w4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.cfg .w4 i{display:block;font-style:normal;font-size:11px;color:var(--muted);text-align:center;margin-top:2px}
+.note{font-size:12px;color:var(--muted);margin:10px 0 0}
+#log{list-style:none;margin:0;padding:0;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:13px}
+#log li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;align-items:baseline;padding-bottom:6px;border-bottom:1px dashed var(--line)}
+#log .tg{font:700 11px/1.6 var(--body);text-align:center;border-radius:2px;color:#121010;background:var(--muted)}
+#log .t-wheel .tg,#log .t-win .tg{background:var(--brass)} #log .t-normal .tg{background:var(--gun-n)} #log .t-shot .tg{background:var(--gun-s)}
+#log .t-snipe .tg{background:var(--gun-x)} #log .t-ice .tg{background:var(--gun-i)} #log .t-gold .tg{background:var(--gold)} #log .t-mine .tg{background:var(--mine)}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.head{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.head .tt{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:900;font-size:20px}
+.brick{width:22px;height:16px;border-radius:2px;flex:none}
+.head p{margin:0;color:var(--muted);font-size:14px}
+.head .rule{color:var(--ink)}
+.tbl{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--pix);font-size:11px;letter-spacing:.12em;color:var(--brass);font-weight:700;text-transform:uppercase}
+td:first-child{white-space:nowrap}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.pill.on{border-color:var(--ember);color:var(--ember)}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <div class="eyebrow">轉盤刮刮樂 · prototype v0.1 · 2026-10-22</div>
+      <h1>轉盤 × 刮刮樂 <span>原型</span></h1>
+    </div>
+    <p class="lead">每一轉由轉盤決定這一槍用哪把槍，對著刮刮卡開槍，打到的格子刮開、收下數字。一般槍打一格，散彈一次打多格，狙擊打中 ×2，冰凍槍先把格子凍住、再被打中就碎開彈射別格。卡片正中間是金磚，打越多下特效越多，隨時可能爆開變成地雷把整張卡全收。轉數用完或卡片收光就結算。</p>
+  </header>
+
+  <div class="grid">
+    <div class="stage">
+      <canvas id="stage" aria-label="試玩畫面：左邊轉盤，右邊刮刮卡"></canvas>
+      <div class="bar">
+        <button id="btn-spin" class="primary" type="button">轉！</button>
+        <button id="btn-auto" class="toggle" type="button" aria-pressed="false">自動連轉：關</button>
+        <button id="btn-gold" type="button">觸發金磚爆開</button>
+        <button id="btn-restart" type="button">重新開始</button>
+        <button id="btn-sound" class="toggle" type="button" aria-pressed="true">音效：開</button>
+        <span class="hint">空白鍵＝轉；瞄準時點格子開槍</span>
+      </div>
+    </div>
+    <aside>
+      <div class="box">
+        <h2>腳本設定</h2>
+        <form id="cfg" class="cfg" autocomplete="off">
+          <div class="sec">卡片 · 按「重新開始」套用</div>
+          <label for="cfg-size">盤面大小</label>
+          <select id="cfg-size"><option value="5" selected>5×5（中間金磚）</option><option value="3">3×3（中間金磚）</option></select>
+          <label for="cfg-spins">每張卡</label>
+          <div class="unit"><input id="cfg-spins" type="number" min="1" max="30" value="6"><span>轉</span></div>
+          <label for="cfg-pool">數字池</label>
+          <input id="cfg-pool" type="text" value="10,20,50,100,500">
+          <label for="cfg-poolw">數字權重</label>
+          <input id="cfg-poolw" type="text" value="40,30,18,9,3">
+
+          <div class="sec">轉盤 · 下一轉生效</div>
+          <label>槍枝權重</label>
+          <div class="w4">
+            <span><input id="cfg-w-normal" type="number" min="0" max="1000" value="40" aria-label="一般槍權重"><i>一般</i></span>
+            <span><input id="cfg-w-shot" type="number" min="0" max="1000" value="25" aria-label="散彈槍權重"><i>散彈</i></span>
+            <span><input id="cfg-w-snipe" type="number" min="0" max="1000" value="20" aria-label="狙擊槍權重"><i>狙擊</i></span>
+            <span><input id="cfg-w-ice" type="number" min="0" max="1000" value="15" aria-label="冰凍槍權重"><i>冰凍</i></span>
+          </div>
+          <label for="cfg-spint">轉盤時間</label>
+          <div class="unit"><input id="cfg-spint" type="number" min="0.6" max="6" step="0.1" value="2.2"><span>秒</span></div>
+
+          <div class="sec">槍 · 下一槍生效</div>
+          <label for="cfg-shotmode">散彈打法</label>
+          <select id="cfg-shotmode"><option value="spread" selected>扇形散開（目標＋周圍）</option><option value="pierce">直線貫穿（由下往上）</option></select>
+          <label for="cfg-shotn">散彈打幾格</label>
+          <div class="unit"><input id="cfg-shotn" type="number" min="2" max="9" value="3"><span>格</span></div>
+          <label for="cfg-snipex">狙擊倍率</label>
+          <div class="unit"><input id="cfg-snipex" type="number" min="1" max="10" step="0.5" value="2"><span>倍</span></div>
+          <label for="cfg-shards">碎冰彈射</label>
+          <div class="unit"><input id="cfg-shards" type="number" min="1" max="8" value="3"><span>格 / 冰塊碎開時</span></div>
+
+          <div class="sec">金磚 → 地雷</div>
+          <label for="cfg-g0">第 1 下爆開</label>
+          <div class="unit"><input id="cfg-g0" type="number" min="0" max="100" value="10"><span>%</span></div>
+          <label for="cfg-ginc">每多打一下</label>
+          <div class="unit"><input id="cfg-ginc" type="number" min="0" max="100" value="15"><span>% 往上加</span></div>
+          <label for="cfg-gmust">必爆</label>
+          <div class="unit"><input id="cfg-gmust" type="number" min="1" max="20" value="5"><span>第幾下一定爆</span></div>
+
+          <div class="sec">瞄準</div>
+          <label for="cfg-aim">瞄準方式</label>
+          <select id="cfg-aim"><option value="player" selected>玩家點格子</option><option value="auto">自動</option></select>
+          <label for="cfg-autogold">自動打金磚</label>
+          <div class="unit"><input id="cfg-autogold" type="number" min="0" max="100" value="30"><span>% / 只在自動瞄準</span></div>
+        </form>
+        <p class="note">要測某把槍：其他槍的權重設 0。要測地雷：按「觸發金磚爆開」，或把必爆設 1。要看整張自己跑完：瞄準方式選自動、打開自動連轉。</p>
+      </div>
+      <div class="box">
+        <h2>事件紀錄</h2>
+        <ul id="log"></ul>
+      </div>
+    </aside>
+  </div>
+
+  <div class="cards">
+    <div class="head">
+      <div class="tt"><span class="brick" style="background:var(--brass)"></span>轉盤</div>
+      <p class="rule">每轉一次決定這一槍用哪把槍，每張卡 6 轉（參數）。</p>
+      <p>扇區大小照權重畫，畫面上看到的比例就是機率。權重設 0 的槍不會出現在轉盤上。</p>
+    </div>
+    <div class="head">
+      <div class="tt"><span class="brick" style="background:var(--gun-n)"></span>一般槍</div>
+      <p class="rule">打一格：刮開那格，收下數字。</p>
+      <p>打到冰塊就把冰塊打碎；打到金磚算 1 下。</p>
+    </div>
+    <div class="head">
+      <div class="tt"><span class="brick" style="background:var(--gun-s)"></span>散彈槍</div>
+      <p class="rule">一次打多格（預設 3 格）。扇形散開＝瞄準那格加周圍隨機格；直線貫穿＝從下往上穿過整欄，已經收掉的格子直接穿過不算。</p>
+      <p>每顆彈丸各自判定：打到金磚算 1 下、打到冰塊會打碎。</p>
+    </div>
+    <div class="head">
+      <div class="tt"><span class="brick" style="background:var(--gun-x)"></span>狙擊槍</div>
+      <p class="rule">打中那格的數字 ×2（倍率可調），數字往上翻倍後才收。</p>
+      <p>打到冰塊：那格 ×2 再碎開，碎冰不加倍。打到金磚：倍率幾倍就算幾下。開槍前有紅外線瞄準和鏡頭推近。</p>
+    </div>
+    <div class="head">
+      <div class="tt"><span class="brick" style="background:var(--gun-i)"></span>冰凍槍</div>
+      <p class="rule">打中的格子先翻開數字、凍成冰塊，先不收。冰塊被任何槍或碎冰再打中一次就碎開：收下那格，碎冰彈射到其他 3 格（可調），打到別的冰塊會連鎖。</p>
+      <p>冰凍槍打到金磚當一般命中，不會把金磚凍住。卡片結束時沒打碎的冰塊融化照收。</p>
+    </div>
+    <div class="head">
+      <div class="tt"><span class="brick" style="background:var(--gold)"></span>金磚 → 地雷</div>
+      <p class="rule">卡片正中間。每被打中一下就判定一次爆開：第 1 下 10%，之後每下 +15%，第 5 下必爆（參數）。爆開後變成地雷，炸開時把所有還沒收的格子（含冰塊）全收，這張卡直接結算。</p>
+      <p>沒爆的時候特效一層層加：裂痕 → 光暈 → 抖動冒火星 → 閃電。右上角顯示下一下的爆開機率。</p>
+    </div>
+  </div>
+
+  <div class="box">
+    <h2>期待感怎麼堆</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>手法</th><th>做法</th></tr></thead>
+      <tbody>
+        <tr><td>轉盤減速</td><td>指針一格一格敲，越轉越慢定格；周圍燈泡跑馬，停下後落點那格閃亮，槍從轉盤飛到卡片下方的軌道。</td></tr>
+        <tr><td>找位置</td><td>自動瞄準時，槍在軌道上左右猶豫一兩欄才停，經過的欄亮起並叮一聲，最後準星在目標上閃。</td></tr>
+        <tr><td>滾動定格</td><td>刮開的數字從小往大跳，越大的數字跳越多格；數字越大顏色越紅，最大獎多爆一圈火花。</td></tr>
+        <tr><td>狙擊推近</td><td>紅外線拉到目標、鏡頭推近、準星收縮、心跳兩下才開槍；×2 蓋章後數字往上數到翻倍。</td></tr>
+        <tr><td>冰塊懸念</td><td>被凍住的格子看得到數字但還沒收，等下一槍打碎才收；碎冰再打別格，打到別的冰塊會連鎖。</td></tr>
+        <tr><td>金磚越打越亮</td><td>每打一下特效加一層：裂痕 → 光暈 → 抖動冒火星 → 閃電；右上角顯示下一下的爆開機率。</td></tr>
+        <tr><td>假失敗</td><td>每次打中金磚都先膨脹、心跳（打越多下心跳越多下），沒爆就冒煙「撐住了…」。</td></tr>
+        <tr><td>地雷倒數</td><td>金磚爆開露出地雷，紅燈越閃越快，最後衝擊波由中心往外，逐格掀開全收。</td></tr>
+        <tr><td>結束不落差</td><td>轉數用完時先把冰塊融化收下，再把沒打到的格子翻開（變暗，不算分），最後跳結算明細。</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="box">
+    <h2>還沒定的事 · 原型目前怎麼處理</h2>
+    <div class="tbl"><table>
+      <thead><tr><th>待定事項</th><th>原型做法</th><th>狀態</th></tr></thead>
+      <tbody>
+        <tr><td>數字代表什麼</td><td>直接當分數加總。之後若是「倍數 × 押注」，只要改結算顯示。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>散彈「打穿多個數字」</td><td>扇形散開、直線貫穿兩種都做，用下拉切換比較手感。</td><td><span class="pill on">可試玩</span></td></tr>
+        <tr><td>誰決定打哪一格</td><td>玩家點格子、自動瞄準兩種都做。玩家自選時，每槍都打金磚會是最佳解，要不要限制（例如金磚只能被散彈或碎冰波及）？</td><td><span class="pill on">可試玩</span></td></tr>
+        <tr><td>盤面大小、每張幾轉</td><td>5×5、6 轉；可切 3×3。</td><td><span class="pill">原型預設</span></td></tr>
+        <tr><td>狙擊打到金磚、冰塊</td><td>金磚：倍率幾倍算幾下。冰塊：那格 ×2，碎冰不加倍。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>冰塊什麼時候收</td><td>凍住時只翻開不收，打碎才收；卡片結束時沒打碎的照收。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>碎冰打哪裡</td><td>隨機打其他還沒收的格子，包含金磚，打到冰塊會連鎖。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>冰凍槍打到金磚</td><td>算 1 下，不會凍住金磚。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>金磚爆開機率曲線</td><td>第 1 下 10%，每下 +15%，第 5 下必爆。</td><td><span class="pill">原型預設</span></td></tr>
+        <tr><td>地雷全收之後</td><td>收完整張卡直接結算，剩下的轉數作廢。也可以改成換新卡繼續轉。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>金磚本身值多少</td><td>金磚本身不給分，價值在「地雷全收」。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>槍、金磚、地雷、轉盤美術</td><td>程式畫的方塊造型，音效即時合成。</td><td><span class="pill">佔位美術</span></td></tr>
+      </tbody>
+    </table></div>
+  </div>
+
+  <div class="box" id="changelog">
+    <h2>更新紀錄</h2>
+    <p class="note" style="margin:0 0 10px">改完請在最上面加一行：日期、誰、改了什麼。發佈時也請在版本標籤寫同一句話，方便從版本歷史找回。</p>
+    <div class="tbl"><table>
+      <thead><tr><th>日期</th><th>誰</th><th>改了什麼</th></tr></thead>
+      <tbody>
+        <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.1：轉盤選槍（一般／散彈／狙擊／冰凍）＋刮刮卡金磚、地雷全收，依口述規格建立試玩原型。</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const W = 960, H = 540, TAU = Math.PI * 2;
+const cv = document.getElementById('stage'), ctx = cv.getContext('2d');
+let SC = 1;
+function fit() { const r = cv.getBoundingClientRect(), dpr = Math.min(2, devicePixelRatio || 1); cv.width = Math.max(1, Math.round(r.width * dpr)); cv.height = Math.max(1, Math.round(r.width * 9 / 16 * dpr)); SC = cv.width / W; }
+new ResizeObserver(fit).observe(cv); fit();
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+// ---------- helpers ----------
+const R = (a, b) => a + Math.random() * (b - a), RI = (a, b) => Math.floor(R(a, b + 1)), pick = a => a[Math.floor(Math.random() * a.length)];
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
+const EZ = { out: t => 1 - Math.pow(1 - t, 3), in: t => t * t * t, io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, back: t => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }, spin: t => 1 - Math.pow(1 - t, 4) };
+const fmt = s => String(s).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+const pct = p => Math.round(p * 100) + '%';
+function wpick(items, ws) { const t = ws.reduce((a, b) => a + b, 0); if (t <= 0) return pick(items); let r = Math.random() * t; for (let i = 0; i < items.length; i++) { r -= ws[i]; if (r < 0) return items[i]; } return items[items.length - 1]; }
+function shuffle(a) { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function txt(s, x, y, size, color, align = 'center', weight = 700, family = 'Noto Sans TC') { ctx.font = `${weight} ${size}px "${family}", sans-serif`; ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.fillStyle = color; ctx.fillText(s, x, y); }
+function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+function star(x, y, r1, r2, n = 4) { ctx.beginPath(); for (let i = 0; i < n * 2; i++) { const a = i / (n * 2) * TAU - Math.PI / 2, r = i % 2 ? r2 : r1; ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r); } ctx.closePath(); ctx.fill(); }
+const DIG = { 0: ['###', '#.#', '#.#', '#.#', '###'], 1: ['.#.', '##.', '.#.', '.#.', '###'], 2: ['###', '..#', '###', '#..', '###'], 3: ['###', '..#', '.##', '..#', '###'], 4: ['#.#', '#.#', '###', '..#', '..#'], 5: ['###', '#..', '###', '..#', '###'], 6: ['###', '#..', '###', '#.#', '###'], 7: ['###', '..#', '.#.', '.#.', '.#.'], 8: ['###', '#.#', '###', '#.#', '###'], 9: ['###', '#.#', '###', '..#', '###'] };
+function drawDigit(d, cx, cy, px, color) { const g = DIG[d]; ctx.fillStyle = color; const x0 = cx - 1.5 * px, y0 = cy - 2.5 * px; for (let r = 0; r < 5; r++) for (let c = 0; c < 3; c++) if (g[r][c] === '#') ctx.fillRect(x0 + c * px, y0 + r * px, px - 1, px - 1); }
+function drawNumber(s, cx, cy, px, color) { s = String(s); const w = s.length * 4 * px - px; let x = cx - w / 2 + 1.5 * px; for (const ch of s) { drawDigit(+ch, x, cy, px, color); x += 4 * px; } }
+
+// ---------- guns ----------
+const GUN_KEYS = ['normal', 'shot', 'snipe', 'ice'];
+const GUNS = {
+  normal: { name: '一般槍', short: '一般', color: '#d8cfc2', fill: '#7d766c', dark: '#3e3a35' },
+  shot: { name: '散彈槍', short: '散彈', color: '#ff8a3d', fill: '#d9662a', dark: '#6e2e0e' },
+  snipe: { name: '狙擊槍', short: '狙擊', color: '#ff5d73', fill: '#c23b52', dark: '#5c1424' },
+  ice: { name: '冰凍槍', short: '冰凍', color: '#62d6ff', fill: '#2b9ccc', dark: '#0f3d52' },
+};
+const GUN_LEN = { normal: 30, shot: 34, snipe: 50, ice: 32 };
+const SRCNAME = { normal: '一般槍', shot: '散彈', snipe: '狙擊', ice: '冰凍槍', shard: '碎冰', mine: '地雷', melt: '融化' };
+const SRC_TAG = { normal: 'normal', shot: 'shot', snipe: 'snipe', ice: 'ice', shard: 'ice', mine: 'mine', melt: 'ice' };
+const SRC_COLOR = { normal: '#d8cfc2', shot: '#ff8a3d', snipe: '#ff5d73', ice: '#62d6ff', shard: '#bff0ff', mine: '#ff5a2a', melt: '#62d6ff' };
+function gunDesc(k) { return k === 'normal' ? '打一格' : k === 'shot' ? (cfg.shotMode === 'pierce' ? `直線貫穿 ${cfg.shotN} 格` : `散開打 ${cfg.shotN} 格`) : k === 'snipe' ? `打中 ×${cfg.snipeX}` : '凍住，再被打就碎開'; }
+// Gun drawn barrel-up around its grip; mono paints a single-color silhouette (used on the wheel).
+function drawGun(k, mono) {
+  const F = c => { ctx.fillStyle = mono || c; };
+  if (k === 'normal') { F('#59534c'); ctx.fillRect(-9, -6, 18, 20); F('#cfc6b8'); ctx.fillRect(-4, -30, 8, 26); F('#8d867b'); ctx.fillRect(-6, -12, 12, 6); F('#2e2824'); ctx.fillRect(-3, 12, 6, 10); }
+  else if (k === 'shot') { F('#8a3f12'); ctx.fillRect(-14, -6, 28, 20); F('#ff8a3d'); ctx.fillRect(-11, -34, 9, 30); ctx.fillRect(2, -34, 9, 30); F('#ffcf7a'); ctx.fillRect(-11, -34, 9, 4); ctx.fillRect(2, -34, 9, 4); F('#3a2a20'); ctx.fillRect(-5, 12, 10, 10); }
+  else if (k === 'snipe') { F('#3b2a2e'); ctx.fillRect(-8, -4, 16, 22); F('#ff5d73'); ctx.fillRect(-3, -48, 6, 46); F('#2b1d20'); ctx.fillRect(-6, -26, 12, 14); F('#ffd2d9'); ctx.fillRect(-3, -27, 6, 3); F('#7d1f2e'); ctx.fillRect(-5, -51, 10, 4); }
+  else { F('#1b5a73'); circle(0, 8, 12); F('#bff0ff'); circle(-3, 5, 4); F('#62d6ff'); ctx.fillRect(-6, -30, 12, 30); F('#e6fbff'); ctx.fillRect(-8, -33, 16, 5); ctx.fillRect(-8, -18, 16, 3); }
+}
+
+// ---------- wheel ----------
+const WH = { cx: 200, cy: 300, r: 150, a: 0, sectors: [], cur: -1, flap: 0, spinning: false, glow: -1, glowT: 0, dirty: false };
+function buildWheel(force) {
+  if (WH.spinning && !force) { WH.dirty = true; return; }
+  const tot = cfg.gw.reduce((a, b) => a + b, 0), secs = []; let a = 0;
+  for (let rep = 0; rep < 2; rep++) GUN_KEYS.forEach((k, i) => { const w = cfg.gw[i]; if (w <= 0) return; const span = w / tot * Math.PI; secs.push({ k, s: a, e: a + span }); a += span; });
+  WH.sectors = secs; WH.glow = -1; WH.dirty = false;
+}
+function sectorAtPointer() { let loc = (-Math.PI / 2 - WH.a) % TAU; if (loc < 0) loc += TAU; for (let i = 0; i < WH.sectors.length; i++) if (loc >= WH.sectors[i].s && loc < WH.sectors[i].e) return i; return WH.sectors.length - 1; }
+
+// ---------- config ----------
+const cfg = {};
+function readCfg() {
+  const v = id => document.getElementById(id).value;
+  const n = (id, d, a, b) => { const s = v(id), x = +s; return clamp(s !== '' && Number.isFinite(x) ? x : d, a, b); };
+  cfg.size = v('cfg-size') === '3' ? 3 : 5;
+  cfg.spins = Math.round(n('cfg-spins', 6, 1, 30));
+  const vals = String(v('cfg-pool')).split(/[,，\s]+/).map(x => Math.round(+x)).filter(x => x > 0 && x < 1e7);
+  const ws = String(v('cfg-poolw')).split(/[,，\s]+/).map(x => +x);
+  cfg.pool = vals.length ? vals : [10, 20, 50, 100, 500];
+  cfg.poolW = cfg.pool.map((_, i) => Number.isFinite(ws[i]) && ws[i] >= 0 ? ws[i] : 1);
+  cfg.sorted = [...new Set(cfg.pool)].sort((a, b) => a - b);
+  cfg.gw = GUN_KEYS.map(k => n('cfg-w-' + k, 0, 0, 1000));
+  if (cfg.gw.every(x => x <= 0)) cfg.gw = [1, 1, 1, 1];
+  cfg.spinT = n('cfg-spint', 2.2, .6, 6);
+  cfg.shotMode = v('cfg-shotmode') === 'pierce' ? 'pierce' : 'spread';
+  cfg.shotN = Math.round(n('cfg-shotn', 3, 2, 9));
+  cfg.snipeX = n('cfg-snipex', 2, 1, 10);
+  cfg.shards = Math.round(n('cfg-shards', 3, 1, 8));
+  cfg.g0 = n('cfg-g0', 10, 0, 100) / 100;
+  cfg.gInc = n('cfg-ginc', 15, 0, 100) / 100;
+  cfg.gMust = Math.round(n('cfg-gmust', 5, 1, 20));
+  cfg.aim = v('cfg-aim') === 'auto' ? 'auto' : 'player';
+  cfg.autoGold = n('cfg-autogold', 30, 0, 100) / 100;
+  buildWheel();
+}
+const goldP = h => h >= cfg.gMust ? 1 : clamp(cfg.g0 + cfg.gInc * (h - 1), 0, 1);
+
+// ---------- event log ----------
+const logEl = document.getElementById('log'), TAGS = { wheel: '轉盤', normal: '一般', shot: '散彈', snipe: '狙擊', ice: '冰凍', gold: '金磚', mine: '地雷', win: '結算', sys: '腳本' };
+function log(msg, tag = 'sys') { const li = document.createElement('li'); li.className = 't-' + tag; li.innerHTML = `<span class="tg">${TAGS[tag] || tag}</span><span>${msg}</span>`; logEl.prepend(li); while (logEl.children.length > 120) logEl.lastChild.remove(); }
+
+// ---------- sound (synthesized, starts after first click) ----------
+const SFX = (() => {
+  let ac = null, on = true, nb = null, lastWheel = 0, lastCoin = 0, lastTick = 0;
+  const get = () => { if (!on) return null; if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } } if (ac.state === 'suspended') ac.resume(); return ac; };
+  function tone(f, dur, type = 'square', vol = .05, f2, delay = 0) { const a = get(); if (!a) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + delay; o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .02); }
+  function noise(dur, vol, f0, f1, q = 1, type = 'bandpass', delay = 0) {
+    const a = get(); if (!a) return;
+    if (!nb) { nb = a.createBuffer(1, a.sampleRate, a.sampleRate); const d = nb.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const t = a.currentTime + delay, s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
+    s.buffer = nb; s.loop = true; f.type = type; f.frequency.setValueAtTime(f0, t); if (f1) f.frequency.exponentialRampToValueAtTime(f1, t + dur); f.Q.value = q;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); s.connect(f).connect(g).connect(a.destination); s.start(t); s.stop(t + dur + .02);
+  }
+  return {
+    set(v) { on = v; }, get on() { return on; }, unlock() { get(); },
+    wheel() { const n = performance.now(); if (n - lastWheel < 35) return; lastWheel = n; tone(1500, .03, 'square', .025); },
+    tick(p) { const n = performance.now(); if (n - lastTick < 25) return; lastTick = n; tone(620 + p * 520, .045, 'square', .03); },
+    land() { tone(170, .28, 'triangle', .2, 60); },
+    beat() { tone(64, .14, 'sine', .3, 44); },
+    pistol() { noise(.12, .35, 2600, 500, .8); tone(160, .08, 'square', .06, 60); },
+    shotgun() { noise(.32, .55, 1400, 180, .6, 'lowpass'); tone(95, .22, 'sawtooth', .1, 40); },
+    sniper() { noise(.07, .6, 5000, null, .7, 'highpass'); noise(.6, .16, 900, 180, .6, 'bandpass', .05); tone(60, .35, 'sine', .35, 28); },
+    freeze() { tone(2400, .32, 'sine', .05, 500); tone(1600, .28, 'triangle', .035, 3200); },
+    chime() { [1568, 2093, 2637].forEach((f, i) => tone(f, .25, 'sine', .05, null, i * .05)); },
+    shatter() { for (let i = 0; i < 6; i++) tone(R(1800, 4200), .12, 'triangle', .035, null, i * .025); noise(.22, .25, 5000, null, 1, 'highpass'); },
+    scratch() { noise(.09, .14, 2500, 6000, .8); },
+    clang(h) { tone(880 + h * 50, .45, 'triangle', .08); tone(1320 + h * 70, .38, 'sine', .05); noise(.05, .2, 6500, null, 1, 'highpass'); },
+    puff() { noise(.35, .14, 700, 180, .7, 'lowpass'); },
+    beep() { tone(1250, .07, 'square', .06); },
+    boom() { noise(1.1, .75, 900, 50, .4, 'lowpass'); tone(70, .9, 'sine', .5, 24); },
+    stamp() { tone(220, .1, 'square', .08, 110); noise(.06, .2, 1500); },
+    coin() { const n = performance.now(); if (n - lastCoin < 45) return; lastCoin = n; tone(1975, .05, 'square', .022); tone(2637, .09, 'square', .022, null, .05); },
+    win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, .28, 'square', .05, null, i * .11)); }
+  };
+})();
+
+// ---------- async timeline: await wait()/tween()/shoot(); cancelAll() abandons running flows ----------
+let timers = [], tweens = [], projs = [];
+const wait = s => new Promise(res => timers.push({ t: s, res }));
+function tween(o, to, dur, ez = EZ.out) { return new Promise(res => { const from = {}; for (const k in to) from[k] = o[k]; tweens.push({ o, from, to, t: 0, dur: Math.max(.001, dur), ez, res }); }); }
+function shoot(x0, y0, x1, y1, dur, kind, color, arc = 0) { return new Promise(res => projs.push({ x0, y0, x1, y1, t: 0, dur: Math.max(.02, dur), kind, color, arc, res })); }
+function cancelAll() { timers = []; tweens = []; projs = []; }
+
+// ---------- state & particles ----------
+const S = { phase: 'ready', t: 0, shake: 0, flash: 0, pops: [], beams: [], rings: [], flyers: [], banner: null, settle: null, lock: null, hover: null, laser: null, scope: null, aimRes: null, autoSpin: false, cam: { x: 480, y: 270, z: 1 } };
+const GN = { k: null, x: 650, y: 508, ang: 0, sc: 1, vis: false, flash: 0, recoil: 0 };
+const parts = [];
+function addP(o) { const p = Object.assign({ kind: 'sq', vx: 0, vy: 0, g: 0, life: 1, size: 4, color: '#fff', rot: R(0, TAU), vr: R(-8, 8) }, o); p.max = p.life; parts.push(p); }
+function burst(x, y, color, n = 14, spd = 220, kind = 'sq') { for (let i = 0; i < n; i++) { const a = R(0, TAU), s = R(.3, 1) * spd; addP({ kind, x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 60, g: 520, life: R(.5, .9), size: R(4, 8), color }); } }
+function flakes(c) { const w = G.cw; for (let i = 0; i < 10; i++) addP({ kind: 'flake', x: c.x + R(-w / 3, w / 3), y: c.y + R(-w / 3, w / 3), vx: R(-160, 160), vy: R(-220, -60), g: 600, life: R(.4, .8), size: R(4, 8), color: pick(['#e4e1db', '#b9b4ac', '#8f8a84']) }); }
+function iceBurst(c, n = 22) { for (let i = 0; i < n; i++) { const a = R(0, TAU), s = R(80, 300); addP({ kind: 'ice', x: c.x, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, g: 420, life: R(.4, .8), size: R(4, 9), color: pick(['#bff0ff', '#62d6ff', '#ffffff']) }); } }
+function pop(text, x, y, color, size = 22) { S.pops.push({ text, x, y, color, size, t: 0, max: 1.2 }); }
+function banner(text, color, sub) { S.banner = { text, color, sub, t: 0, max: 1.3 }; }
+
+// ---------- board ----------
+const G = { n: 5, cw: 68, gap: 6, x0: 0, y0: 0, tw: 0, cells: [], gold: null, colGlow: [], total: 0, shown: 0, stats: {}, spinsLeft: 0, spinsTotal: 0, spinNo: 0, cleared: false };
+const colX = c => G.x0 + c * (G.cw + G.gap) + G.cw / 2;
+const railY = () => G.y0 + G.tw + 40;
+function makeCracks() { const out = []; for (let i = 0; i < 10; i++) { let x = R(-.38, .38), y = R(-.4, .3), a = R(0, TAU); const pts = [[x, y]]; for (let k = 0, n = RI(2, 4); k < n; k++) { a += R(-.9, .9); x = clamp(x + Math.cos(a) * R(.07, .14), -.46, .46); y = clamp(y + Math.sin(a) * R(.12, .24), -.48, .4); pts.push([x, y]); } out.push(pts); } return out; }
+function newBoard() {
+  const n = cfg.size; G.n = n; G.cw = n === 5 ? 68 : 104; G.gap = n === 5 ? 6 : 10; G.tw = n * G.cw + (n - 1) * G.gap;
+  G.x0 = 650 - G.tw / 2; G.y0 = n === 5 ? 98 : 104;
+  const mid = (n - 1) / 2; G.cells = [];
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const gold = r === mid && c === mid;
+    G.cells.push({ r, c, x: colX(c), y: G.y0 + r * (G.cw + G.gap) + G.cw / 2, kind: gold ? 'gold' : 'num', v: gold ? 0 : wpick(cfg.pool, cfg.poolW), st: 'cover', shown: 0, coverA: 1, iceA: 0, f: 0, fc: '#fff', dy: 0, res: false, by: null, roll: null });
+  }
+  G.gold = { cell: G.cells.find(c => c.kind === 'gold'), hits: 0, st: 'intact', sc: 1, pulse: 0, blink: 0, mineSc: 0, zap: 0, bolt: null, boltLife: 0, twinkle: null, cracks: makeCracks() };
+  G.colGlow = new Array(n).fill(0);
+  Object.assign(G, { total: 0, shown: 0, stats: {}, spinsLeft: cfg.spins, spinsTotal: cfg.spins, spinNo: 0, cleared: false });
+}
+function targetable(c) {
+  if (c.kind === 'gold') return !G.cleared && (G.gold.st === 'intact' || G.gold.st === 'tension');
+  return !c.res && (c.st === 'cover' || c.st === 'ice');
+}
+const pierceList = col => G.cells.filter(c => c.c === col && targetable(c)).sort((a, b) => b.r - a.r).slice(0, cfg.shotN);
+function spreadTargets(t, N) {
+  const out = [t];
+  for (let rad = 1; out.length < N && rad < G.n; rad++) {
+    const ring = shuffle(G.cells.filter(c => !out.includes(c) && targetable(c) && Math.max(Math.abs(c.r - t.r), Math.abs(c.c - t.c)) === rad));
+    for (const c of ring) { if (out.length >= N) break; out.push(c); }
+  }
+  return out;
+}
+function chooseAutoTarget(k) {
+  const all = G.cells.filter(targetable), gold = all.find(c => c.kind === 'gold'), nums = all.filter(c => c.kind === 'num');
+  if (gold && (!nums.length || Math.random() < cfg.autoGold)) return gold;
+  return wpick(nums, nums.map(c => c.st === 'ice' ? (k === 'ice' ? 1 : 3) : 1)); // 自動瞄準偏好打冰塊（觸發碎冰）
+}
+function valColor(v) { const s = cfg.sorted, n = s.length; if (v >= s[n - 1]) return '#ff5a2a'; if (n > 1 && v >= s[n - 2]) return '#ff8f2e'; if (n > 2 && v >= s[Math.floor(n / 2)]) return '#ffc04a'; return '#ffe7a6'; }
+const isTop = v => v >= cfg.sorted[cfg.sorted.length - 1];
+function digitPx(len) { return Math.max(2, Math.min(G.n === 5 ? 6 : 9, Math.floor((G.cw - 14) / (len * 4 - 1)))); }
+
+function collect(c, amt, src) {
+  G.total += amt; G.stats[src] = (G.stats[src] || 0) + amt;
+  c.by = src; c.f = 1; c.fc = SRC_COLOR[src];
+  pop('+' + fmt(amt), c.x, c.y - 26, '#ffe08a', isTop(c.v) || amt >= cfg.sorted[cfg.sorted.length - 1] ? 26 : 19);
+  S.flyers.push({ x0: c.x, y0: c.y, t: 0, dur: R(.45, .65) }); SFX.coin();
+}
+// Scratch reveal: the number counts upward through the pool and lands on its value (bigger values take more steps).
+function reveal(c) {
+  tween(c, { coverA: 0 }, .14);
+  const seq = cfg.sorted.filter(v => v < c.v).slice(-5); seq.push(c.v); c.shown = seq[0];
+  return new Promise(res => { c.roll = { seq, i: 0, acc: 0, iv: seq.map((_, i) => lerp(.04, .12, Math.pow((i + 1) / seq.length, 2))), res }; });
+}
+async function multUp(c, mult) {
+  const to = Math.round(c.v * mult); SFX.stamp(); pop('×' + mult, c.x + G.cw * .3, c.y - G.cw * .45, '#ff5d73', 26);
+  for (let i = 1; i <= 8; i++) { c.shown = Math.round(lerp(c.v, to, i / 8)); c.dy = -3; SFX.tick(i / 8); await wait(lerp(.03, .07, i / 8)); }
+  SFX.land(); c.f = 1; c.fc = '#ff5d73';
+}
+
+// ---------- hit resolution ----------
+async function hit(c, o) {
+  c.res = false;
+  if (G.cleared) return;
+  const src = o.src, mult = o.mult || 1;
+  if (c.kind === 'gold') {
+    const n = Math.max(1, Math.round(mult));
+    for (let i = 0; i < n; i++) { if (G.cleared) break; await goldHit(src, n > 1 ? `（×${mult} 算 ${n} 下）` : ''); }
+    return;
+  }
+  if (c.st === 'ice') return shatter(c, { src, mult });
+  if (c.st !== 'cover') return;
+  SFX.scratch(); flakes(c);
+  if (o.freeze) {
+    c.st = 'freezing'; tween(c, { iceA: 1 }, .2, EZ.back);
+    await reveal(c); c.st = 'ice'; SFX.chime(); iceBurst(c, 8);
+    log(`冰凍槍把 ${fmt(c.v)} 凍住（先不收，再被打中就碎開）`, 'ice'); return;
+  }
+  c.st = 'rolling'; await reveal(c);
+  if (mult > 1) await multUp(c, mult);
+  const amt = Math.round(c.v * mult); c.st = 'done'; collect(c, amt, src);
+  log(`${SRCNAME[src]}刮開 ${fmt(c.v)}${mult > 1 ? ' ×' + mult : ''} → +${fmt(amt)}`, SRC_TAG[src]);
+}
+async function shatter(c, o) {
+  c.st = 'shatter'; const mult = o.mult || 1;
+  SFX.shatter(); S.shake = Math.max(S.shake, .25); c.iceA = 0; iceBurst(c);
+  if (mult > 1) await multUp(c, mult);
+  const amt = Math.round(c.v * mult); c.st = 'done'; collect(c, amt, 'ice');
+  const ts = G.cleared ? [] : shuffle(G.cells.filter(x => x !== c && targetable(x))).slice(0, cfg.shards);
+  log(`冰塊被${SRCNAME[o.src]}打碎 → +${fmt(amt)}，碎冰彈射 ${ts.length} 格`, 'ice');
+  ts.forEach(x => { if (x.kind === 'num') x.res = true; });
+  await Promise.all(ts.map((x, i) => wait(i * .06).then(() => shoot(c.x, c.y, x.x, x.y, .24 + R(0, .06), 'shard', '#bff0ff', R(-50, 50))).then(() => hit(x, { src: 'shard' }))));
+}
+// Gold hits queue up so concurrent pellets/shards resolve one at a time.
+let goldQ = Promise.resolve();
+function goldHit(src, note) { const p = goldQ.then(() => doGoldHit(src, note)); goldQ = p.catch(() => {}); return p; }
+async function doGoldHit(src, note = '') {
+  const g = G.gold, c = g.cell; if (G.cleared || g.st !== 'intact') return;
+  g.hits++; const h = g.hits, p = goldP(h);
+  SFX.clang(h); c.f = 1; c.fc = '#fff6c8'; S.shake = Math.max(S.shake, .14 + h * .03);
+  burst(c.x, c.y - 6, '#ffd34d', 8 + h * 4, 180 + h * 20);
+  pop(`第 ${h} 下`, c.x, c.y - G.cw * .62, '#ffd34d', 18);
+  log(`${SRCNAME[src]}打中金磚${note}：第 ${h} 下，爆開機率 ${pct(p)}`, 'gold');
+  g.st = 'tension';
+  const beats = Math.min(4, 1 + Math.floor(h / 2));
+  for (let i = 0; i < beats; i++) { SFX.beat(); g.pulse = 1; await tween(g, { sc: 1.05 + .035 * (i + 1) }, .12, EZ.out); await tween(g, { sc: 1 + .02 * (i + 1) }, .1, EZ.in); }
+  if (Math.random() < p) { await goldExplode(); return; }
+  SFX.puff(); for (let i = 0; i < 8; i++) addP({ kind: 'smoke', x: c.x + R(-18, 18), y: c.y - 10, vx: R(-20, 20), vy: R(-50, -20), life: R(.6, 1), size: R(6, 10), color: '#8a7f74' });
+  pop('撐住了…', c.x, c.y + G.cw * .55, '#d8cbb8', 15);
+  await tween(g, { sc: 1 }, .12, EZ.out); g.st = 'intact';
+  log(`金磚撐住了，下一下 ${pct(goldP(h + 1))}`, 'gold');
+}
+async function goldExplode() {
+  const g = G.gold, c = g.cell; if (g.st === 'burst' || g.st === 'mine' || g.st === 'crater') return;
+  g.st = 'burst'; G.cleared = true;
+  S.flash = 1; S.shake = .6; SFX.boom();
+  for (let i = 0; i < 26; i++) { const a = R(0, TAU), s = R(120, 420); addP({ kind: 'gold', x: c.x, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, g: 700, life: R(.6, 1.1), size: R(6, 12), color: pick(['#ffd34d', '#ffe88a', '#e0a92a', '#b07a12']) }); }
+  banner('金磚爆開！', '#ffd34d', '變成地雷…');
+  log('金磚爆開 → 變成地雷', 'mine');
+  await wait(.45);
+  g.st = 'mine'; g.mineSc = 0; SFX.land(); await tween(g, { mineSc: 1 }, .28, EZ.back);
+  for (const t of [.34, .26, .2, .15, .11, .08, .06, .05]) { g.blink = 1; SFX.beep(); await wait(t); }
+  g.st = 'crater'; S.flash = 1.2; S.shake = 1; SFX.boom();
+  S.rings.push({ x: c.x, y: c.y, t: 0, dur: .9, max: 560, color: '#ff8a3d' }, { x: c.x, y: c.y, t: -.12, dur: .9, max: 520, color: '#ffd34d' });
+  burst(c.x, c.y, '#ff8a3d', 30, 380); burst(c.x, c.y, '#ffd34d', 20, 300);
+  for (let i = 0; i < 12; i++) addP({ kind: 'smoke', x: c.x + R(-20, 20), y: c.y + R(-20, 20), vx: R(-60, 60), vy: R(-80, -20), life: R(.8, 1.4), size: R(8, 14), color: '#5a4a40' });
+  const list = G.cells.filter(x => x.kind === 'num' && (x.st === 'cover' || x.st === 'ice'));
+  let sum = 0;
+  await Promise.all(list.map(x => wait(Math.hypot(x.x - c.x, x.y - c.y) / 560 * .9).then(() => { sum += mineCollect(x); })));
+  if (list.length) banner(`地雷全收 +${fmt(sum)}`, '#ff8a3d', `${list.length} 格一次收下`); else banner('地雷炸開', '#ff8a3d', '卡片已經收光了');
+  log(`地雷全收 ${list.length} 格 → +${fmt(sum)}`, 'mine');
+  await wait(.9);
+}
+function mineCollect(x) {
+  const wasIce = x.st === 'ice'; x.st = 'done'; x.res = false; x.shown = x.v; x.iceA = 0; x.dy = -8;
+  tween(x, { coverA: 0 }, .12); burst(x.x, x.y, wasIce ? '#bff0ff' : '#d8d3cc', 8, 160, wasIce ? 'ice' : 'flake');
+  collect(x, x.v, 'mine'); return x.v;
+}
+
+// ---------- turn flow ----------
+async function spinWheel() {
+  const k = wpick(GUN_KEYS, cfg.gw);
+  const opts = WH.sectors.map((s, i) => ({ s, i })).filter(o => o.s.k === k), { s: sec, i: si } = pick(opts);
+  const m = (sec.e - sec.s) * .15, th = R(sec.s + m, sec.e - m);
+  let target = -Math.PI / 2 - th; const min = WH.a + (4 + RI(0, 1)) * TAU;
+  while (target < min) target += TAU;
+  WH.spinning = true; WH.glow = -1;
+  await tween(WH, { a: target }, cfg.spinT, EZ.spin);
+  WH.spinning = false; WH.a = ((WH.a % TAU) + TAU) % TAU; WH.glow = si; WH.glowT = 0;
+  return k;
+}
+async function presentGun(k) {
+  SFX.land();
+  Object.assign(GN, { k, x: WH.cx, y: WH.cy, sc: 0, ang: 0, vis: true, flash: 0, recoil: 0 });
+  banner(GUNS[k].name, GUNS[k].color, gunDesc(k));
+  await tween(GN, { sc: 1.7 }, .2, EZ.back);
+  await wait(.22);
+  await tween(GN, { x: 650, y: railY() + 6, sc: 1 }, .38, EZ.io);
+  SFX.tick(.2);
+}
+function playerAim() { S.hover = null; return new Promise(res => { S.aimRes = res; }); }
+const angTo = t => Math.atan2(t.x - GN.x, GN.y - t.y);
+async function autoAim(k) {
+  const t = chooseAutoTarget(k), path = [];
+  for (let i = 0, n = RI(1, 2); i < n; i++) path.push(RI(0, G.n - 1));
+  path.push(t.c);
+  for (const col of path) { await tween(GN, { x: colX(col) }, .14, EZ.io); G.colGlow[col] = 1; SFX.tick(col / G.n); await wait(.05); }
+  await tween(GN, { ang: k === 'shot' && cfg.shotMode === 'pierce' ? 0 : angTo(t) }, .08);
+  S.lock = { t }; await wait(.32);
+  return t;
+}
+const muzzle = () => { const L = GUN_LEN[GN.k] * GN.sc; return { x: GN.x + Math.sin(GN.ang) * L, y: GN.y - Math.cos(GN.ang) * L }; };
+function kick(col) { GN.flash = 1; GN.recoil = 1; S.shake = Math.max(S.shake, .12); const m = muzzle(); burst(m.x, m.y, col, 6, 120); }
+async function fire(k, t) {
+  S.lock = null; S.hover = null; const col = GUNS[k].color;
+  await tween(GN, { x: colX(t.c) }, Math.abs(GN.x - colX(t.c)) > 2 ? .1 : .001, EZ.io);
+  if (k === 'shot' && cfg.shotMode === 'pierce') {
+    const list = pierceList(t.c); list.forEach(c => { if (c.kind === 'num') c.res = true; });
+    await tween(GN, { ang: 0 }, .06);
+    SFX.shotgun(); kick(col); log(`散彈直線貫穿第 ${t.c + 1} 欄，打到 ${list.length} 格`, 'shot');
+    let y = muzzle().y; const hits = [];
+    for (const c of list) { await shoot(GN.x, y, GN.x, c.y, (y - c.y) / 1500, 'slug', col); y = c.y; burst(c.x, c.y, col, 8, 160); hits.push(hit(c, { src: 'shot' })); }
+    await shoot(GN.x, y, GN.x, G.y0 - 30, (y - G.y0 + 30) / 1500, 'slug', col);
+    await Promise.all(hits); return;
+  }
+  await tween(GN, { ang: angTo(t) }, .08);
+  if (k === 'normal') {
+    if (t.kind === 'num') t.res = true;
+    SFX.pistol(); kick(col); const m = muzzle();
+    await shoot(m.x, m.y, t.x, t.y, .12, 'bullet', '#ffe9a8'); await hit(t, { src: 'normal' }); return;
+  }
+  if (k === 'shot') {
+    const ts = spreadTargets(t, cfg.shotN); ts.forEach(c => { if (c.kind === 'num') c.res = true; });
+    SFX.shotgun(); kick(col); log(`散彈散開打 ${ts.length} 格`, 'shot');
+    const m = muzzle();
+    await Promise.all(ts.map((c, i) => shoot(m.x, m.y, c.x + R(-5, 5), c.y + R(-5, 5), .13 + i * .035, 'pellet', '#ffcf7a').then(() => hit(c, { src: 'shot' }))));
+    return;
+  }
+  if (k === 'snipe') {
+    if (t.kind === 'num') t.res = true;
+    const m = muzzle();
+    S.laser = { x0: m.x, y0: m.y, x1: t.x, y1: t.y, a: 0 }; tween(S.laser, { a: 1 }, .15);
+    S.scope = { x: t.x, y: t.y, r: 140, a: 0, p: 0 };
+    tween(S.cam, { x: lerp(480, t.x, .55), y: lerp(270, t.y, .55), z: 1.45 }, .45, EZ.io);
+    await tween(S.scope, { r: G.cw * .5, a: 1 }, .45, EZ.out);
+    for (let i = 0; i < 2; i++) { SFX.beat(); S.scope.p = 1; await wait(.22); }
+    SFX.sniper(); kick(col); S.flash = .35;
+    const m2 = muzzle(); S.beams.push({ x0: m2.x, y0: m2.y, x1: t.x, y1: t.y, life: .3, max: .3, w: 5, color: '#fff2f4' });
+    S.laser = null; S.scope = null;
+    tween(S.cam, { x: 480, y: 270, z: 1 }, .35, EZ.io);
+    await hit(t, { src: 'snipe', mult: cfg.snipeX }); return;
+  }
+  if (t.kind === 'num') t.res = true;
+  SFX.freeze(); kick(col); const m = muzzle();
+  await shoot(m.x, m.y, t.x, t.y, .22, 'ice', col);
+  await hit(t, { src: 'ice', freeze: true });
+}
+async function playTurn() {
+  if (S.phase === 'end') { if (!S.settle || S.settle.t < .6) return; restart(); }
+  if (S.phase !== 'ready' || G.spinsLeft <= 0 || G.cleared) return;
+  SFX.unlock();
+  G.spinsLeft--; G.spinNo++;
+  S.phase = 'spin'; GN.vis = false;
+  if (WH.dirty) buildWheel(true);
+  const k = await spinWheel();
+  log(`第 ${G.spinNo} 轉 → ${GUNS[k].name}（${gunDesc(k)}）`, 'wheel');
+  S.phase = 'gun'; await presentGun(k);
+  S.phase = 'aim';
+  const t = cfg.aim === 'player' ? await playerAim() : await autoAim(k);
+  S.phase = 'fire'; await fire(k, t);
+  await afterShot();
+}
+async function afterShot() {
+  await wait(.25);
+  if (G.cleared || !G.cells.some(targetable)) return endCard(G.cleared ? 'mine' : 'clear');
+  if (G.spinsLeft <= 0) return endCard('spins');
+  S.phase = 'ready';
+  if (S.autoSpin) { await wait(.45); playTurn(); }
+}
+async function endCard(reason) {
+  S.phase = 'end';
+  for (const x of G.cells.filter(x => x.kind === 'num' && x.st === 'ice')) {
+    x.st = 'done'; tween(x, { iceA: 0 }, .3); iceBurst(x, 6); collect(x, x.v, 'melt');
+    log(`冰塊融化收下 ${fmt(x.v)}`, 'ice'); await wait(.15);
+  }
+  const covers = G.cells.filter(x => x.kind === 'num' && x.st === 'cover');
+  if (covers.length) {
+    await wait(.2);
+    for (const x of covers) { x.st = 'missed'; x.shown = x.v; tween(x, { coverA: 0 }, .18); await wait(.035); }
+    log(`沒打到的 ${covers.length} 格翻開給你看（不算分）`);
+  }
+  await wait(.6);
+  const why = { mine: '地雷全收！', clear: '整張收光', spins: '轉數用完' }[reason];
+  S.settle = { value: G.total, t: 0, why }; SFX.win(); S.flash = .5;
+  log(`結算 ${fmt(G.total)}（${why}）`, 'win');
+}
+async function forceGold() {
+  SFX.unlock();
+  if (S.phase === 'end' || G.gold.st !== 'intact') restart();
+  if (S.phase !== 'ready') { log('等這一槍演完再按'); return; }
+  S.phase = 'fire'; log('測試捷徑：直接讓金磚爆開');
+  await goldExplode();
+  await afterShot();
+}
+function restart() {
+  cancelAll(); readCfg(); parts.length = 0; goldQ = Promise.resolve();
+  Object.assign(S, { phase: 'ready', settle: null, pops: [], beams: [], rings: [], flyers: [], banner: null, lock: null, hover: null, laser: null, scope: null, aimRes: null, flash: 0, shake: 0, cam: { x: 480, y: 270, z: 1 } });
+  GN.vis = false; GN.k = null; WH.spinning = false; buildWheel();
+  newBoard(); log(`新的一張卡：${cfg.size}×${cfg.size}，${cfg.spins} 轉`);
+}
+
+// ---------- input ----------
+document.getElementById('cfg').addEventListener('change', () => {
+  readCfg();
+  if (S.phase === 'aim' && cfg.aim === 'auto' && S.aimRes) { const r = S.aimRes; S.aimRes = null; autoAim(GN.k).then(r); }
+});
+document.getElementById('cfg').addEventListener('submit', e => e.preventDefault());
+document.getElementById('btn-spin').addEventListener('click', () => playTurn());
+document.getElementById('btn-restart').addEventListener('click', () => { restart(); });
+document.getElementById('btn-gold').addEventListener('click', () => forceGold());
+document.getElementById('btn-auto').addEventListener('click', e => {
+  S.autoSpin = !S.autoSpin; e.currentTarget.textContent = '自動連轉：' + (S.autoSpin ? '開' : '關'); e.currentTarget.setAttribute('aria-pressed', String(S.autoSpin));
+  if (S.autoSpin && S.phase === 'ready') playTurn();
+});
+document.getElementById('btn-sound').addEventListener('click', e => { SFX.set(!SFX.on); e.currentTarget.textContent = '音效：' + (SFX.on ? '開' : '關'); e.currentTarget.setAttribute('aria-pressed', String(SFX.on)); });
+addEventListener('keydown', e => { if (e.code !== 'Space' || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return; e.preventDefault(); playTurn(); });
+function lp(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
+function cellAt(x, y) { const h = G.cw / 2 + G.gap / 2; return G.cells.find(c => Math.abs(x - c.x) <= h && Math.abs(y - c.y) <= h) || null; }
+function aimCandidate(p) {
+  const c = cellAt(p.x, p.y); if (!c) return null;
+  if (GN.k === 'shot' && cfg.shotMode === 'pierce') { const list = pierceList(c.c); return list.length ? list[0] : null; }
+  return targetable(c) ? c : null;
+}
+const overWheel = p => Math.hypot(p.x - WH.cx, p.y - WH.cy) < WH.r + 16;
+cv.addEventListener('pointermove', e => {
+  const p = lp(e), aiming = S.phase === 'aim' && cfg.aim === 'player';
+  if (aiming) S.hover = aimCandidate(p);
+  cv.style.cursor = (aiming && S.hover) || (S.phase === 'ready' && overWheel(p)) || (S.phase === 'end' && S.settle) ? 'pointer' : 'default';
+});
+cv.addEventListener('pointerdown', e => {
+  SFX.unlock(); const p = lp(e);
+  if (S.phase === 'aim' && cfg.aim === 'player' && S.aimRes) { const t = aimCandidate(p); if (t) { const res = S.aimRes; S.aimRes = null; res(t); } return; }
+  if (S.phase === 'ready' && overWheel(p)) { playTurn(); return; }
+  if (S.phase === 'end' && S.settle && S.settle.t > .6) restart();
+});
+
+// ---------- update ----------
+function projPos(p, t = p.t) { const k = clamp(t / p.dur, 0, 1); let x = lerp(p.x0, p.x1, k), y = lerp(p.y0, p.y1, k); if (p.arc) { const dx = p.x1 - p.x0, dy = p.y1 - p.y0, L = Math.hypot(dx, dy) || 1, o = Math.sin(Math.PI * k) * p.arc; x += -dy / L * o; y += dx / L * o; } return { x, y }; }
+function makeBolt(c) { const a = R(0, TAU), pts = []; let x = c.x + Math.cos(a) * G.cw * .42, y = c.y + Math.sin(a) * G.cw * .28; pts.push([x, y]); for (let i = 0; i < 4; i++) { x += Math.cos(a) * 9 + R(-7, 7); y += Math.sin(a) * 9 + R(-7, 7); pts.push([x, y]); } return pts; }
+function update(dt) {
+  S.t += dt;
+  for (let i = timers.length - 1; i >= 0; i--) { const tm = timers[i]; tm.t -= dt; if (tm.t <= 0) { timers.splice(i, 1); tm.res(); } }
+  for (let i = tweens.length - 1; i >= 0; i--) { const tw = tweens[i]; tw.t += dt; const p = clamp(tw.t / tw.dur, 0, 1), e = tw.ez(p); for (const k in tw.to) tw.o[k] = lerp(tw.from[k], tw.to[k], e); if (p >= 1) { tweens.splice(i, 1); tw.res(); } }
+  for (let i = projs.length - 1; i >= 0; i--) {
+    const p = projs[i]; p.t += dt;
+    if (p.kind === 'ice' && Math.random() < dt * 40) { const q = projPos(p); addP({ kind: 'ice', x: q.x, y: q.y, vx: R(-30, 30), vy: R(-30, 30), life: R(.2, .4), size: R(2, 4), color: '#e6fbff' }); }
+    if (p.t >= p.dur) { projs.splice(i, 1); p.res(); }
+  }
+  S.beams = S.beams.filter(b => (b.life -= dt) > 0);
+  S.rings = S.rings.filter(r => (r.t += dt) < r.dur);
+  S.shake = Math.max(0, S.shake - dt); S.flash = Math.max(0, S.flash - dt * 1.6);
+  S.pops.forEach(p => { p.t += dt; p.y -= 40 * dt; }); S.pops = S.pops.filter(p => p.t < p.max);
+  S.flyers = S.flyers.filter(f => (f.t += dt) < f.dur);
+  if (S.banner && (S.banner.t += dt) > S.banner.max) S.banner = null;
+  if (S.scope) S.scope.p = Math.max(0, S.scope.p - dt * 3);
+  for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; if (p.life <= 0) { parts.splice(i, 1); continue; } p.vy += p.g * dt; if (p.kind === 'smoke') p.vx *= 1 - dt * 1.5; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; }
+  // wheel ticks: one click per sector boundary under the pointer
+  const si = sectorAtPointer(); if (si !== WH.cur) { if (WH.spinning) { SFX.wheel(); WH.flap = 1; } WH.cur = si; }
+  WH.flap = Math.max(0, WH.flap - dt * 7); WH.glowT += dt;
+  GN.flash = Math.max(0, GN.flash - dt * 6); GN.recoil = Math.max(0, GN.recoil - dt * 6);
+  if (S.phase === 'aim' && cfg.aim === 'player' && S.hover && GN.vis) {
+    const k = Math.min(1, dt * 14); GN.x += (colX(S.hover.c) - GN.x) * k;
+    GN.ang += ((GN.k === 'shot' && cfg.shotMode === 'pierce' ? 0 : angTo(S.hover)) - GN.ang) * k;
+  }
+  for (let i = 0; i < G.colGlow.length; i++) G.colGlow[i] = Math.max(0, G.colGlow[i] - dt * 2.5);
+  for (const c of G.cells) {
+    c.f = Math.max(0, c.f - dt * 1.8); c.dy *= Math.pow(.001, dt);
+    const r = c.roll; if (!r) continue; r.acc += dt;
+    if (r.acc >= r.iv[r.i]) {
+      r.acc = 0; r.i++;
+      if (r.i >= r.seq.length) { c.shown = c.v; c.roll = null; c.f = .8; c.fc = valColor(c.v); SFX.land(); if (isTop(c.v)) { burst(c.x, c.y, '#ff5a2a', 18, 240); pop('大獎！', c.x, c.y - G.cw * .6, '#ff5a2a', 18); } r.res(); }
+      else { c.shown = r.seq[r.i]; c.dy = -4; SFX.tick(r.i / r.seq.length); }
+    }
+  }
+  const g = G.gold;
+  if (g) {
+    g.pulse = Math.max(0, g.pulse - dt * 2.5); g.blink = Math.max(0, g.blink - dt * 5); g.boltLife -= dt;
+    if (g.st === 'intact' || g.st === 'tension') {
+      const L = g.hits, c = g.cell;
+      if (L >= 3 && Math.random() < dt * (4 + L * 3)) addP({ kind: 'ember', x: c.x + R(-22, 22), y: c.y + R(-8, 8), vx: R(-10, 10), vy: R(-60, -30), g: -10, life: R(.6, 1.1), size: R(2, 4), color: pick(['#ffb347', '#ff7a2a', '#ffd34d']) });
+      if (L >= 4 && (g.zap -= dt) <= 0) { g.zap = R(.08, .25); g.bolt = makeBolt(c); g.boltLife = .1; }
+      if (!g.twinkle && Math.random() < dt * 1.2) g.twinkle = { x: R(-.4, .4), y: R(-.45, .1), t: 0 };
+      if (g.twinkle && (g.twinkle.t += dt) > .5) g.twinkle = null;
+    }
+  }
+  const d = G.total - G.shown; G.shown = Math.abs(d) < 1 ? G.total : G.shown + d * Math.min(1, dt * 7);
+  if (S.settle) S.settle.t += dt;
+}
+
+// ---------- draw ----------
+function drawWheel() {
+  const { cx, cy, r } = WH;
+  ctx.fillStyle = '#2b201a'; circle(cx, cy, r + 18);
+  ctx.strokeStyle = '#d9a743'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, r + 17, 0, TAU); ctx.stroke();
+  const NB = 20, landed = WH.glow >= 0 && WH.glowT < 1.4;
+  for (let i = 0; i < NB; i++) {
+    const a = i / NB * TAU, on = WH.spinning ? (i + Math.floor(S.t * 14)) % 3 === 0 : landed ? Math.floor(S.t * 8) % 2 === 0 : (i + Math.floor(S.t * 2)) % 2 === 0;
+    ctx.fillStyle = on ? '#ffe08a' : '#5a4636'; circle(cx + Math.cos(a) * (r + 9), cy + Math.sin(a) * (r + 9), 3.2);
+  }
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(WH.a);
+  WH.sectors.forEach((s, i) => {
+    ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, r, s.s, s.e); ctx.closePath();
+    const gr = ctx.createRadialGradient(0, 0, r * .2, 0, 0, r); gr.addColorStop(0, GUNS[s.k].dark); gr.addColorStop(1, GUNS[s.k].fill); ctx.fillStyle = gr; ctx.fill();
+    if (WH.glow === i) { ctx.fillStyle = `rgba(255,245,220,${.2 + .18 * Math.sin(S.t * 18)})`; ctx.fill(); }
+    ctx.strokeStyle = 'rgba(20,14,10,.85)'; ctx.lineWidth = 2; ctx.stroke();
+    const mid = (s.s + s.e) / 2, span = s.e - s.s;
+    ctx.save(); ctx.rotate(mid + Math.PI / 2);
+    if (span > .28) { ctx.save(); ctx.translate(0, -r * .5); ctx.scale(.62, .62); drawGun(s.k, 'rgba(255,246,232,.9)'); ctx.restore(); }
+    txt(GUNS[s.k].short, 0, -r * .82, span > .35 ? 16 : 12, '#fff6e8', 'center', 900);
+    ctx.restore();
+  });
+  ctx.restore();
+  const ready = S.phase === 'ready';
+  if (ready) { ctx.strokeStyle = `rgba(255,138,61,${.4 + .4 * Math.sin(S.t * 5)})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx, cy, 40, 0, TAU); ctx.stroke(); }
+  ctx.fillStyle = '#1d1915'; circle(cx, cy, 34); ctx.strokeStyle = '#d9a743'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, 34, 0, TAU); ctx.stroke();
+  txt('轉', cx, cy + 1, 24, ready ? '#ff8a3d' : '#7a6a5c', 'center', 900, 'Noto Serif TC');
+  ctx.save(); ctx.translate(cx, cy - r - 20); ctx.rotate(-WH.flap * .35);
+  ctx.fillStyle = '#ff8a3d'; ctx.strokeStyle = '#1b0f06'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-13, -8); ctx.lineTo(13, -8); ctx.lineTo(0, 24); ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+function drawGunLabel() {
+  const y = 497, active = GN.k && S.phase !== 'ready' && S.phase !== 'spin';
+  const s = active ? `${GUNS[GN.k].name} · ${gunDesc(GN.k)}` : S.phase === 'spin' ? '轉盤轉動中…' : '轉盤決定這一槍用哪把槍';
+  const col = active ? GUNS[GN.k].color : '#a6978a';
+  ctx.font = '700 14px "Noto Sans TC", sans-serif'; const w = ctx.measureText(s).width + 28;
+  ctx.fillStyle = 'rgba(14,11,9,.85)'; rrect(WH.cx - w / 2, y - 15, w, 30, 15); ctx.fill();
+  ctx.strokeStyle = col; ctx.lineWidth = 1.5; ctx.stroke(); txt(s, WH.cx, y + 1, 14, col);
+}
+function drawCard() {
+  const fx = G.x0 - 16, fy = G.y0 - 14, fw = G.tw + 32, fh = G.tw + 28;
+  ctx.fillStyle = '#3c1d2c'; rrect(fx, fy, fw, fh, 8); ctx.fill();
+  const gr = ctx.createLinearGradient(fx, fy, fx + fw, fy + fh); gr.addColorStop(0, '#f0c75a'); gr.addColorStop(.5, '#a8771f'); gr.addColorStop(1, '#f0c75a');
+  ctx.strokeStyle = gr; ctx.lineWidth = 3; rrect(fx + 4, fy + 4, fw - 8, fh - 8, 6); ctx.stroke();
+  ctx.fillStyle = '#1a1411'; for (let y = fy + 18; y < fy + fh - 10; y += 22) { circle(fx, y, 4.5); circle(fx + fw, y, 4.5); }
+  for (let c = 0; c < G.n; c++) if (G.colGlow[c] > 0) { ctx.fillStyle = `rgba(255,200,90,${G.colGlow[c] * .14})`; ctx.fillRect(colX(c) - G.cw / 2 - 2, G.y0 - 6, G.cw + 4, G.tw + 12); }
+}
+function drawCover(c, x, y, w, a) {
+  ctx.save(); ctx.globalAlpha = a;
+  const gr = ctx.createLinearGradient(x, y, x + w, y + w); gr.addColorStop(0, '#e4e1db'); gr.addColorStop(.5, '#a9a49d'); gr.addColorStop(1, '#d2cec7');
+  ctx.fillStyle = gr; rrect(x, y, w, w, 4); ctx.fill(); ctx.clip();
+  const sx = ((S.t * 70 + c.r * 23 + c.c * 37) % (w * 4)) - w;
+  ctx.fillStyle = 'rgba(255,255,255,.35)'; ctx.beginPath(); ctx.moveTo(x + sx, y); ctx.lineTo(x + sx + 14, y); ctx.lineTo(x + sx + 14 - w, y + w); ctx.lineTo(x + sx - w, y + w); ctx.closePath(); ctx.fill();
+  txt('?', c.x, c.y + c.dy + 1, w * .34, 'rgba(90,84,78,.5)', 'center', 700, 'Silkscreen');
+  ctx.restore();
+}
+function drawIce(c, x, y, w) {
+  ctx.save(); ctx.globalAlpha = clamp(c.iceA, 0, 1); const fy = Math.sin(S.t * 3 + c.c) * 1.5;
+  ctx.translate(0, fy);
+  ctx.fillStyle = 'rgba(110,205,255,.42)'; rrect(x - 2, y - 2, w + 4, w + 4, 6); ctx.fill();
+  ctx.strokeStyle = '#d8f6ff'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.55)'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x + 6, y + w * .35); ctx.lineTo(x + w * .35, y + 6); ctx.moveTo(x + w * .62, y + w - 6); ctx.lineTo(x + w - 6, y + w * .62); ctx.stroke();
+  ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fillRect(x + 2, y + 2, 7, 3); ctx.fillRect(x + 2, y + 2, 3, 7); ctx.fillRect(x + w - 9, y + w - 5, 7, 3); ctx.fillRect(x + w - 5, y + w - 9, 3, 7);
+  ctx.restore();
+}
+function drawCells() {
+  const w = G.cw;
+  for (const c of G.cells) {
+    if (c.kind === 'gold') continue;
+    const x = c.x - w / 2, y = c.y - w / 2 + c.dy;
+    ctx.fillStyle = '#1b1411'; rrect(x, y, w, w, 4); ctx.fill();
+    if (c.st !== 'cover' || c.coverA < 1) {
+      const s = String(c.shown || c.v), done = c.st === 'done', missed = c.st === 'missed';
+      ctx.globalAlpha = missed ? .32 : done ? .62 : 1;
+      const top = !missed && isTop(+s); if (top) { ctx.shadowColor = '#ff5a2a'; ctx.shadowBlur = 12; }
+      drawNumber(s, c.x, c.y + c.dy, digitPx(s.length), missed ? '#8a7f74' : valColor(+s));
+      ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+      if (done && c.by) { ctx.fillStyle = SRC_COLOR[c.by]; ctx.fillRect(x + 4, y + 4, 9, 4); }
+    }
+    if (c.iceA > 0 && (c.st === 'ice' || c.st === 'freezing' || c.st === 'done')) drawIce(c, x, y, w);
+    if (c.coverA > 0) drawCover(c, x, y, w, c.coverA);
+    if (c.f > 0) { ctx.globalAlpha = c.f * .5; ctx.fillStyle = c.fc; rrect(x, y, w, w, 4); ctx.fill(); ctx.globalAlpha = 1; }
+  }
+}
+function drawMine(x, y, r, blink) {
+  if (r <= 0) return;
+  ctx.save(); ctx.translate(x, y);
+  ctx.fillStyle = '#2b2b2b'; for (let i = 0; i < 8; i++) { ctx.save(); ctx.rotate(i / 8 * TAU); ctx.fillRect(-3, -r - 7, 6, 10); ctx.restore(); }
+  const gr = ctx.createRadialGradient(-r * .35, -r * .35, 2, 0, 0, r); gr.addColorStop(0, '#6a6a6a'); gr.addColorStop(1, '#141414'); ctx.fillStyle = gr; circle(0, 0, r);
+  ctx.fillStyle = '#3a3a3a'; ctx.fillRect(-r, -2, r * 2, 4);
+  if (blink > 0) { const lg = ctx.createRadialGradient(0, -r * .5, 1, 0, -r * .5, r * 1.8); lg.addColorStop(0, `rgba(255,60,40,${.75 * blink})`); lg.addColorStop(1, 'rgba(255,60,40,0)'); ctx.fillStyle = lg; circle(0, -r * .5, r * 1.8); }
+  ctx.fillStyle = blink > 0 ? '#ff4a2a' : '#6a1a12'; circle(0, -r * .5, r * .22);
+  ctx.restore();
+}
+function drawGoldCell() {
+  const g = G.gold; if (!g) return; const c = g.cell, w = G.cw;
+  ctx.fillStyle = '#1b1411'; rrect(c.x - w / 2, c.y - w / 2, w, w, 4); ctx.fill();
+  if (g.st === 'crater') {
+    const gr = ctx.createRadialGradient(c.x, c.y, 2, c.x, c.y, w * .6); gr.addColorStop(0, '#000'); gr.addColorStop(.6, '#3a1a0c'); gr.addColorStop(1, 'rgba(58,26,12,0)'); ctx.fillStyle = gr; circle(c.x, c.y, w * .6);
+    txt('地雷', c.x, c.y, 12, 'rgba(255,138,61,.6)', 'center', 900); return;
+  }
+  if (g.st === 'mine') { drawMine(c.x, c.y + 4, w * .3 * g.mineSc, g.blink); return; }
+  if (g.st === 'burst') return;
+  const L = g.hits, jit = L >= 3 && !REDUCED ? (L - 2) * .9 : 0;
+  const ga = clamp(.1 + L * .17, 0, .85) * (.75 + .25 * Math.sin(S.t * (3 + L * 1.5))), ar = w * (.7 + L * .1);
+  const gr = ctx.createRadialGradient(c.x, c.y, w * .15, c.x, c.y, ar); gr.addColorStop(0, `rgba(255,205,70,${ga})`); gr.addColorStop(1, 'rgba(255,205,70,0)'); ctx.fillStyle = gr; circle(c.x, c.y, ar);
+  ctx.save(); ctx.translate(c.x + R(-jit, jit), c.y + R(-jit, jit)); const s = g.sc * (1 + g.pulse * .04); ctx.scale(s, s);
+  const bw = w * 1.04, bh = w * .64;
+  const top = [[-bw * .34, -bh * .5], [bw * .34, -bh * .5], [bw * .5, -bh * .08], [-bw * .5, -bh * .08]];
+  const front = [[-bw * .5, -bh * .08], [bw * .5, -bh * .08], [bw * .46, bh * .42], [-bw * .46, bh * .42]];
+  const poly = pts => { ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); };
+  let fg = ctx.createLinearGradient(0, -bh * .5, 0, -bh * .08); fg.addColorStop(0, '#fff2a8'); fg.addColorStop(1, '#ffcf3d'); ctx.fillStyle = fg; poly(top); ctx.fill();
+  fg = ctx.createLinearGradient(0, -bh * .08, 0, bh * .42); fg.addColorStop(0, '#e8ad2c'); fg.addColorStop(1, '#9c6a10'); ctx.fillStyle = fg; poly(front); ctx.fill();
+  ctx.strokeStyle = '#fff8d0'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(-bw * .5, -bh * .08); ctx.lineTo(bw * .5, -bh * .08); ctx.stroke();
+  txt('金', 0, -bh * .29, Math.round(w * .2), '#b8841a', 'center', 900, 'Noto Serif TC');
+  const nc = Math.min(g.cracks.length, L * 2);
+  if (nc) {
+    ctx.strokeStyle = L >= 3 ? '#ff7a1a' : '#5e3f08'; ctx.lineWidth = 1.6; if (L >= 3) { ctx.shadowColor = '#ff7a1a'; ctx.shadowBlur = 8; }
+    for (let i = 0; i < nc; i++) { ctx.beginPath(); g.cracks[i].forEach(([x, y], j) => j ? ctx.lineTo(x * bw, y * bh) : ctx.moveTo(x * bw, y * bh)); ctx.stroke(); }
+    ctx.shadowBlur = 0;
+  }
+  if (c.f > 0) { ctx.globalAlpha = c.f * .7; ctx.fillStyle = '#fffbe6'; poly(top); ctx.fill(); poly(front); ctx.fill(); ctx.globalAlpha = 1; }
+  if (g.twinkle) { ctx.globalAlpha = Math.sin(Math.PI * g.twinkle.t / .5); ctx.fillStyle = '#fff'; star(g.twinkle.x * bw, g.twinkle.y * bh, 7, 1.5); ctx.globalAlpha = 1; }
+  ctx.restore();
+  if (g.bolt && g.boltLife > 0) { ctx.strokeStyle = '#d8f4ff'; ctx.lineWidth = 2; ctx.shadowColor = '#8fd8ff'; ctx.shadowBlur = 10; ctx.beginPath(); g.bolt.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke(); ctx.shadowBlur = 0; }
+}
+function crosshair(c, col, label) {
+  const r = G.cw * .42; ctx.strokeStyle = col; ctx.lineWidth = 2.5;
+  ctx.beginPath(); ctx.arc(c.x, c.y, r, 0, TAU); ctx.stroke();
+  ctx.beginPath(); for (let i = 0; i < 4; i++) { const a = i * Math.PI / 2; ctx.moveTo(c.x + Math.cos(a) * (r - 8), c.y + Math.sin(a) * (r - 8)); ctx.lineTo(c.x + Math.cos(a) * (r + 7), c.y + Math.sin(a) * (r + 7)); } ctx.stroke();
+  ctx.fillStyle = col; circle(c.x, c.y, 2.5);
+  if (label) txt(label, c.x + r + 4, c.y - r, 15, col, 'left', 900);
+}
+function drawPreview(t, a) {
+  const k = GN.k; if (!k) return; const col = GUNS[k].color; ctx.globalAlpha = a;
+  if (k === 'shot' && cfg.shotMode === 'pierce') {
+    ctx.fillStyle = 'rgba(255,138,61,.12)'; ctx.fillRect(colX(t.c) - G.cw / 2 - 3, G.y0 - 6, G.cw + 6, G.tw + 12);
+    for (const c of pierceList(t.c)) crosshair(c, col);
+  } else if (k === 'shot') {
+    crosshair(t, col);
+    const x0 = Math.max(0, t.c - 1), x1 = Math.min(G.n - 1, t.c + 1), y0 = Math.max(0, t.r - 1), y1 = Math.min(G.n - 1, t.r + 1), st = G.cw + G.gap;
+    ctx.setLineDash([6, 5]); ctx.strokeStyle = col; ctx.lineWidth = 2; rrect(G.x0 + x0 * st - 4, G.y0 + y0 * st - 4, (x1 - x0) * st + G.cw + 8, (y1 - y0) * st + G.cw + 8, 6); ctx.stroke(); ctx.setLineDash([]);
+  } else crosshair(t, col, k === 'snipe' ? '×' + cfg.snipeX : null);
+  ctx.globalAlpha = 1;
+}
+function drawAim() {
+  if (S.phase === 'aim' && cfg.aim === 'player' && GN.k) {
+    ctx.strokeStyle = GUNS[GN.k].color; ctx.lineWidth = 2; ctx.globalAlpha = .3 + .25 * Math.sin(S.t * 6);
+    for (const c of G.cells) if (targetable(c)) { rrect(c.x - G.cw / 2 - 2, c.y - G.cw / 2 - 2, G.cw + 4, G.cw + 4, 5); ctx.stroke(); }
+    ctx.globalAlpha = 1;
+    if (S.hover) drawPreview(S.hover, 1);
+  }
+  if (S.lock) drawPreview(S.lock.t, .55 + .45 * Math.sin(S.t * 22));
+  if (S.laser) { const l = S.laser; ctx.globalAlpha = l.a * (.6 + .4 * Math.sin(S.t * 40)); ctx.strokeStyle = '#ff3b4f'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(l.x0, l.y0); ctx.lineTo(l.x1, l.y1); ctx.stroke(); ctx.fillStyle = '#ff3b4f'; circle(l.x1, l.y1, 3); ctx.globalAlpha = 1; }
+  if (S.scope) {
+    const s = S.scope, r = s.r * (1 + s.p * .08); ctx.globalAlpha = s.a; ctx.strokeStyle = '#ff5d73'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(s.x, s.y, r, 0, TAU); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(s.x - r - 10, s.y); ctx.lineTo(s.x - 6, s.y); ctx.moveTo(s.x + 6, s.y); ctx.lineTo(s.x + r + 10, s.y); ctx.moveTo(s.x, s.y - r - 10); ctx.lineTo(s.x, s.y - 6); ctx.moveTo(s.x, s.y + 6); ctx.lineTo(s.x, s.y + r + 10); ctx.stroke();
+    ctx.globalAlpha = 1;
+  }
+}
+function drawRail() {
+  const y = railY(), x0 = G.x0 - 12, x1 = G.x0 + G.tw + 12;
+  ctx.fillStyle = '#2a221d'; ctx.fillRect(x0, y - 3, x1 - x0, 8); ctx.fillStyle = '#4a3d33'; ctx.fillRect(x0, y - 3, x1 - x0, 2);
+  for (let c = 0; c < G.n; c++) { const gl = G.colGlow[c]; ctx.fillStyle = gl > 0 ? `rgba(255,200,90,${.4 + gl * .6})` : '#5d4e42'; ctx.fillRect(colX(c) - 6, y + 7, 12, 3); }
+}
+function drawGunObj() {
+  if (!GN.vis || !GN.k) return;
+  ctx.save(); ctx.translate(GN.x, GN.y); ctx.rotate(GN.ang); ctx.scale(GN.sc, GN.sc); ctx.translate(0, GN.recoil * 7);
+  drawGun(GN.k);
+  if (GN.flash > 0) { ctx.globalAlpha = GN.flash; ctx.fillStyle = '#fff3c4'; star(0, -GUN_LEN[GN.k] - 6, 15, 5, 5); ctx.globalAlpha = 1; }
+  ctx.restore();
+}
+function drawProjs() {
+  ctx.lineCap = 'round';
+  for (const p of projs) {
+    const a = projPos(p), b = projPos(p, Math.max(0, p.t - (p.kind === 'slug' ? .06 : .04)));
+    ctx.strokeStyle = p.color; ctx.lineWidth = { slug: 7, pellet: 3.5, ice: 9, shard: 4 }[p.kind] || 3;
+    ctx.globalAlpha = .9; ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(a.x, a.y); ctx.stroke();
+    if (p.kind === 'ice' || p.kind === 'slug') { ctx.globalAlpha = .35; ctx.fillStyle = p.color; circle(a.x, a.y, 12); }
+    ctx.globalAlpha = 1;
+  }
+  for (const b of S.beams) { ctx.globalAlpha = b.life / b.max; ctx.strokeStyle = b.color; ctx.lineWidth = b.w * b.life / b.max + 1; ctx.beginPath(); ctx.moveTo(b.x0, b.y0); ctx.lineTo(b.x1, b.y1); ctx.stroke(); }
+  ctx.globalAlpha = 1; ctx.lineCap = 'butt';
+}
+function drawFx() {
+  for (const r of S.rings) { if (r.t < 0) continue; const k = r.t / r.dur; ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.color; ctx.lineWidth = 14 * (1 - k) + 2; ctx.beginPath(); ctx.arc(r.x, r.y, r.max * EZ.out(k), 0, TAU); ctx.stroke(); }
+  ctx.globalAlpha = 1;
+  for (const p of parts) {
+    const a = clamp(p.life / p.max * 1.6, 0, 1);
+    if (p.kind === 'smoke') { const k = 1 - p.life / p.max; ctx.globalAlpha = a * .45; ctx.fillStyle = p.color; circle(p.x, p.y, p.size * (1 + k * 2.2)); continue; }
+    ctx.globalAlpha = a; ctx.fillStyle = p.color;
+    if (p.kind === 'sq' || p.kind === 'ember') { ctx.fillRect(p.x - p.size / 2, p.y - p.size / 2, p.size, p.size); continue; }
+    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+    if (p.kind === 'ice') { ctx.beginPath(); ctx.moveTo(0, -p.size / 2); ctx.lineTo(p.size / 3, 0); ctx.lineTo(0, p.size / 2); ctx.lineTo(-p.size / 3, 0); ctx.closePath(); ctx.fill(); }
+    else if (p.kind === 'gold') { ctx.fillRect(-p.size / 2, -p.size * .3, p.size, p.size * .6); ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.fillRect(-p.size / 2, -p.size * .3, p.size, p.size * .15); }
+    else ctx.fillRect(-p.size / 2, -p.size / 4, p.size, p.size / 2);
+    ctx.restore();
+  }
+  ctx.globalAlpha = 1;
+  for (const f of S.flyers) { const k = EZ.in(f.t / f.dur); ctx.fillStyle = '#ffd34d'; circle(lerp(f.x0, W - 70, k), lerp(f.y0, 27, k) - Math.sin(Math.PI * k) * 40, 4); }
+  for (const p of S.pops) { ctx.globalAlpha = clamp((p.max - p.t) * 3, 0, 1); txt(p.text, p.x, p.y, p.size, p.color, 'center', 900); ctx.globalAlpha = 1; }
+}
+function hudBox(x, y, w, h) { ctx.fillStyle = 'rgba(14,11,9,.86)'; rrect(x, y, w, h, 4); ctx.fill(); ctx.strokeStyle = 'rgba(217,167,67,.25)'; ctx.lineWidth = 1; ctx.stroke(); }
+function phaseText() {
+  switch (S.phase) {
+    case 'ready': return G.spinNo ? '按「轉！」或點轉盤轉下一槍' : '按「轉！」或點轉盤中間開始';
+    case 'spin': return '轉盤轉動中…';
+    case 'gun': return GN.k ? GUNS[GN.k].name + '！' : '';
+    case 'aim': return cfg.aim === 'player' ? (GN.k === 'shot' && cfg.shotMode === 'pierce' ? '點一欄開槍（由下往上貫穿）' : '點一格開槍') : '自動瞄準中…';
+    case 'fire': return '開槍！';
+    default: return '結算';
+  }
+}
+function drawHUD() {
+  hudBox(12, 10, 280, 58);
+  txt(G.spinNo ? `第 ${G.spinNo} 轉` : '準備', 26, 28, 17, '#f1e7d6', 'left', 900, 'Noto Serif TC');
+  txt(phaseText(), 26, 51, 12, '#ff8a3d', 'left', 700);
+  if (G.spinsLeft > 10) txt(`剩 ${G.spinsLeft} 轉`, 280, 28, 12, '#d9a743', 'right', 700);
+  else for (let i = 0; i < G.spinsTotal && i < 10; i++) { const bx = 276 - i * 9, on = i < G.spinsLeft; ctx.fillStyle = on ? '#d9a743' : '#3a312a'; ctx.fillRect(bx - 2, 23, 5, 11); ctx.fillStyle = on ? '#ffe9a8' : '#3a312a'; ctx.fillRect(bx - 2, 20, 5, 3); }
+  const bx = W - 272; hudBox(bx, 10, 260, 64);
+  txt('總獎', bx + 14, 27, 12, '#a6978a', 'left', 500);
+  txt(fmt(Math.round(G.shown)), W - 26, 28, 20, '#ffd56a', 'right', 700, 'Silkscreen');
+  const g = G.gold;
+  if (g && (g.st === 'intact' || g.st === 'tension')) {
+    const now = g.st === 'tension', p = goldP(now ? g.hits : g.hits + 1);
+    txt(now ? `金磚第 ${g.hits} 下 · 爆開機率` : `金磚 ${g.hits} 下 · 下一下爆開`, bx + 14, 56, 12, now ? '#ffd34d' : '#a6978a', 'left', now ? 700 : 500);
+    ctx.fillStyle = '#2a221d'; ctx.fillRect(W - 112, 51, 56, 10); ctx.fillStyle = p >= .6 ? '#ffd34d' : '#d9a743'; ctx.fillRect(W - 112, 51, 56 * p, 10);
+    txt(pct(p), W - 26, 56, 12, '#f1e7d6', 'right', 700, 'Silkscreen');
+  } else if (g) txt(g.st === 'crater' ? '金磚已爆開 · 地雷全收' : '金磚爆開中…', bx + 14, 56, 12, '#ff8a3d', 'left', 700);
+}
+function drawBanner() {
+  const b = S.banner; if (!b) return;
+  const a = b.t < .12 ? b.t / .12 : clamp((b.max - b.t) * 4, 0, 1), sc = 1 + (1 - EZ.out(Math.min(1, b.t / .2))) * .4;
+  ctx.globalAlpha = a; ctx.fillStyle = 'rgba(14,11,9,.82)'; ctx.fillRect(G.x0 - 16, 238, G.tw + 32, 82);
+  ctx.save(); ctx.translate(650, 268); ctx.scale(sc, sc); txt(b.text, 0, 0, 34, b.color, 'center', 900, 'Noto Serif TC'); ctx.restore();
+  if (b.sub) txt(b.sub, 650, 302, 14, '#f1e7d6', 'center', 700);
+  ctx.globalAlpha = 1;
+}
+const SETTLE_ROWS = [['normal', '一般槍'], ['shot', '散彈槍'], ['snipe', '狙擊槍'], ['ice', '冰塊打碎'], ['shard', '碎冰彈射'], ['mine', '地雷全收'], ['melt', '冰塊融化']];
+function drawSettle() {
+  const s = S.settle; if (!s) return; const a = clamp(s.t * 3, 0, 1);
+  ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,7,5,.7)'; ctx.fillRect(0, 0, W, H);
+  const rows = SETTLE_ROWS.filter(([k]) => (G.stats[k] || 0) > 0), ph = 190 + rows.length * 24, py = 270 - ph / 2;
+  ctx.fillStyle = '#1d1915'; rrect(300, py, 360, ph, 6); ctx.fill(); ctx.strokeStyle = '#d9a743'; ctx.lineWidth = 2; ctx.stroke();
+  txt('結算', 480, py + 34, 28, '#d9a743', 'center', 900, 'Noto Serif TC');
+  txt(s.why, 480, py + 64, 13, '#ff8a3d', 'center', 700);
+  txt(fmt(Math.round(s.value * EZ.out(clamp(s.t / 1.2, 0, 1)))), 480, py + 108, 44, '#ffd56a', 'center', 700, 'Silkscreen');
+  rows.forEach(([k, label], i) => { const y = py + 148 + i * 24; txt(label, 330, y, 14, '#a6978a', 'left', 500); txt(fmt(G.stats[k]), 630, y, 14, '#f1e7d6', 'right', 700, 'Silkscreen'); });
+  txt('點畫面或按「轉！」換一張新卡', 480, py + ph - 20, 12, '#a6978a', 'center', 500);
+  ctx.globalAlpha = 1;
+}
+function draw() {
+  ctx.setTransform(SC, 0, 0, SC, 0, 0);
+  const bg = ctx.createRadialGradient(480, 240, 60, 480, 270, 620); bg.addColorStop(0, '#231a15'); bg.addColorStop(1, '#100c0a'); ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+  ctx.save();
+  const cm = S.cam; ctx.translate(480, 270); ctx.scale(cm.z, cm.z); ctx.translate(-cm.x, -cm.y);
+  if (S.shake > 0 && !REDUCED) ctx.translate(R(-1, 1) * S.shake * 14, R(-1, 1) * S.shake * 14);
+  drawWheel(); drawGunLabel(); drawCard(); drawCells(); drawGoldCell(); drawAim(); drawRail(); drawGunObj(); drawProjs(); drawFx();
+  ctx.restore();
+  drawHUD(); drawBanner(); drawSettle();
+  if (S.flash > 0 && !REDUCED) { ctx.fillStyle = `rgba(255,240,210,${Math.min(1, S.flash) * .6})`; ctx.fillRect(0, 0, W, H); }
+}
+
+// ---------- start ----------
+readCfg(); restart();
+let last = performance.now();
+function frame(now) { const dt = Math.min(.05, (now - last) / 1000); last = now; update(dt); draw(); requestAnimationFrame(frame); }
+requestAnimationFrame(t => { last = t; frame(t); });
+})();
+</script>
