@@ -33,6 +33,8 @@ button{font:600 14px/1 var(--body);color:var(--ink);background:var(--panel-2);bo
 button:hover{border-color:var(--brass)}
 button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--ember);outline-offset:2px}
 button.primary{background:var(--ember);border-color:var(--ember);color:#1b0f06;min-width:84px}
+#btn-spin,canvas#stage{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#btn-spin{touch-action:none}
 button[aria-pressed="true"].toggle{border-color:var(--brass);color:var(--brass)}
 aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 .box{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 16px;min-width:0}
@@ -71,10 +73,10 @@ td:first-child{white-space:nowrap}
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow">轉盤刮刮樂 · prototype v0.1 · 2026-10-22</div>
+      <div class="eyebrow">轉盤刮刮樂 · prototype v0.2 · 2026-10-22</div>
       <h1>轉盤 × 刮刮樂 <span>原型</span></h1>
     </div>
-    <p class="lead">每一轉由轉盤決定這一槍用哪把槍，對著刮刮卡開槍，打到的格子刮開、收下數字。一般槍打一格，散彈一次打多格，狙擊打中 ×2，冰凍槍先把格子凍住、再被打中就碎開彈射別格。卡片正中間是金磚，打越多下特效越多，隨時可能爆開變成地雷把整張卡全收。轉數用完或卡片收光就結算。</p>
+    <p class="lead">壓住轉盤開始轉，放開後停在哪把槍，那把槍就自動對刮刮卡開槍，打到的格子刮開、收下數字。一般槍打一格，散彈一次打多格，狙擊打中 ×2，冰凍槍先把格子凍住、再被打中就碎開彈射別格。卡片正中間是金磚，打越多下特效越多，隨時可能爆開變成地雷把整張卡全收。轉數用完或卡片收光就結算。</p>
   </header>
 
   <div class="grid">
@@ -86,7 +88,7 @@ td:first-child{white-space:nowrap}
         <button id="btn-gold" type="button">觸發金磚爆開</button>
         <button id="btn-restart" type="button">重新開始</button>
         <button id="btn-sound" class="toggle" type="button" aria-pressed="true">音效：開</button>
-        <span class="hint">空白鍵＝轉；瞄準時點格子開槍</span>
+        <span class="hint">壓住畫面、「轉！」或空白鍵開始轉，放開就開槍</span>
       </div>
     </div>
     <aside>
@@ -111,8 +113,8 @@ td:first-child{white-space:nowrap}
             <span><input id="cfg-w-snipe" type="number" min="0" max="1000" value="20" aria-label="狙擊槍權重"><i>狙擊</i></span>
             <span><input id="cfg-w-ice" type="number" min="0" max="1000" value="15" aria-label="冰凍槍權重"><i>冰凍</i></span>
           </div>
-          <label for="cfg-spint">轉盤時間</label>
-          <div class="unit"><input id="cfg-spint" type="number" min="0.6" max="6" step="0.1" value="2.2"><span>秒</span></div>
+          <label for="cfg-spint">放開後減速</label>
+          <div class="unit"><input id="cfg-spint" type="number" min="0.4" max="4" step="0.1" value="1.4"><span>秒左右</span></div>
 
           <div class="sec">槍 · 下一槍生效</div>
           <label for="cfg-shotmode">散彈打法</label>
@@ -134,11 +136,11 @@ td:first-child{white-space:nowrap}
 
           <div class="sec">瞄準</div>
           <label for="cfg-aim">瞄準方式</label>
-          <select id="cfg-aim"><option value="player" selected>玩家點格子</option><option value="auto">自動</option></select>
+          <select id="cfg-aim"><option value="auto" selected>自動（放開就開槍）</option><option value="player">玩家點格子</option></select>
           <label for="cfg-autogold">自動打金磚</label>
           <div class="unit"><input id="cfg-autogold" type="number" min="0" max="100" value="30"><span>% / 只在自動瞄準</span></div>
         </form>
-        <p class="note">要測某把槍：其他槍的權重設 0。要測地雷：按「觸發金磚爆開」，或把必爆設 1。要看整張自己跑完：瞄準方式選自動、打開自動連轉。</p>
+        <p class="note">要測某把槍：其他槍的權重設 0。要測地雷：按「觸發金磚爆開」，或把必爆設 1。要看整張自己跑完：打開自動連轉。</p>
       </div>
       <div class="box">
         <h2>事件紀錄</h2>
@@ -150,7 +152,7 @@ td:first-child{white-space:nowrap}
   <div class="cards">
     <div class="head">
       <div class="tt"><span class="brick" style="background:var(--brass)"></span>轉盤</div>
-      <p class="rule">每轉一次決定這一槍用哪把槍，每張卡 6 轉（參數）。</p>
+      <p class="rule">壓住轉盤（或「轉！」、空白鍵）開始轉，壓著越轉越快；放開後減速停下，停在哪把槍，那把槍就自動瞄準開槍。每張卡 6 轉（參數）。</p>
       <p>扇區大小照權重畫，畫面上看到的比例就是機率。權重設 0 的槍不會出現在轉盤上。</p>
     </div>
     <div class="head">
@@ -185,8 +187,8 @@ td:first-child{white-space:nowrap}
     <div class="tbl"><table>
       <thead><tr><th>手法</th><th>做法</th></tr></thead>
       <tbody>
-        <tr><td>轉盤減速</td><td>指針一格一格敲，越轉越慢定格；周圍燈泡跑馬，停下後落點那格閃亮，槍從轉盤飛到卡片下方的軌道。</td></tr>
-        <tr><td>找位置</td><td>自動瞄準時，槍在軌道上左右猶豫一兩欄才停，經過的欄亮起並叮一聲，最後準星在目標上閃。</td></tr>
+        <tr><td>壓住轉、放開停</td><td>壓住時轉盤加速、燈泡越跑越快；放開後指針一格一格敲，越轉越慢定格，落點那格閃亮。</td></tr>
+        <tr><td>看到槍就開槍</td><td>轉盤一停，槍從轉盤彈出、直接飛到目標那一欄，準星一閃就開槍，不再左右猶豫找位置。</td></tr>
         <tr><td>滾動定格</td><td>刮開的數字從小往大跳，越大的數字跳越多格；數字越大顏色越紅，最大獎多爆一圈火花。</td></tr>
         <tr><td>狙擊推近</td><td>紅外線拉到目標、鏡頭推近、準星收縮、心跳兩下才開槍；×2 蓋章後數字往上數到翻倍。</td></tr>
         <tr><td>冰塊懸念</td><td>被凍住的格子看得到數字但還沒收，等下一槍打碎才收；碎冰再打別格，打到別的冰塊會連鎖。</td></tr>
@@ -205,7 +207,7 @@ td:first-child{white-space:nowrap}
       <tbody>
         <tr><td>數字代表什麼</td><td>直接當分數加總。之後若是「倍數 × 押注」，只要改結算顯示。</td><td><span class="pill">原型假設</span></td></tr>
         <tr><td>散彈「打穿多個數字」</td><td>扇形散開、直線貫穿兩種都做，用下拉切換比較手感。</td><td><span class="pill on">可試玩</span></td></tr>
-        <tr><td>誰決定打哪一格</td><td>玩家點格子、自動瞄準兩種都做。玩家自選時，每槍都打金磚會是最佳解，要不要限制（例如金磚只能被散彈或碎冰波及）？</td><td><span class="pill on">可試玩</span></td></tr>
+        <tr><td>誰決定打哪一格</td><td>自動瞄準：放開轉盤、看到槍就發射（yichonezhu 10/22）。玩家點格子留在下拉選單當比較用。</td><td><span class="pill">已定</span></td></tr>
         <tr><td>盤面大小、每張幾轉</td><td>5×5、6 轉；可切 3×3。</td><td><span class="pill">原型預設</span></td></tr>
         <tr><td>狙擊打到金磚、冰塊</td><td>金磚：倍率幾倍算幾下。冰塊：那格 ×2，碎冰不加倍。</td><td><span class="pill">原型假設</span></td></tr>
         <tr><td>冰塊什麼時候收</td><td>凍住時只翻開不收，打碎才收；卡片結束時沒打碎的照收。</td><td><span class="pill">原型假設</span></td></tr>
@@ -225,6 +227,7 @@ td:first-child{white-space:nowrap}
     <div class="tbl"><table>
       <thead><tr><th>日期</th><th>誰</th><th>改了什麼</th></tr></thead>
       <tbody>
+        <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.2：轉盤改成壓住轉、放開停；停下看到槍就自動瞄準開槍（預設自動瞄準，拿掉左右找位置）。</td></tr>
         <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.1：轉盤選槍（一般／散彈／狙擊／冰凍）＋刮刮卡金磚、地雷全收，依口述規格建立試玩原型。</td></tr>
       </tbody>
     </table></div>
@@ -244,7 +247,7 @@ const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // ---------- helpers ----------
 const R = (a, b) => a + Math.random() * (b - a), RI = (a, b) => Math.floor(R(a, b + 1)), pick = a => a[Math.floor(Math.random() * a.length)];
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v)), lerp = (a, b, t) => a + (b - a) * t;
-const EZ = { out: t => 1 - Math.pow(1 - t, 3), in: t => t * t * t, io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, back: t => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); }, spin: t => 1 - Math.pow(1 - t, 4) };
+const EZ = { out: t => 1 - Math.pow(1 - t, 3), in: t => t * t * t, io: t => t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2, back: t => { const c = 1.9; return 1 + (c + 1) * Math.pow(t - 1, 3) + c * Math.pow(t - 1, 2); } };
 const fmt = s => String(s).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 const pct = p => Math.round(p * 100) + '%';
 function wpick(items, ws) { const t = ws.reduce((a, b) => a + b, 0); if (t <= 0) return pick(items); let r = Math.random() * t; for (let i = 0; i < items.length; i++) { r -= ws[i]; if (r < 0) return items[i]; } return items[items.length - 1]; }
@@ -280,7 +283,7 @@ function drawGun(k, mono) {
 }
 
 // ---------- wheel ----------
-const WH = { cx: 200, cy: 300, r: 150, a: 0, sectors: [], cur: -1, flap: 0, spinning: false, glow: -1, glowT: 0, dirty: false };
+const WH = { cx: 200, cy: 300, r: 150, a: 0, w: 0, sectors: [], cur: -1, flap: 0, spinning: false, glow: -1, glowT: 0, dirty: false };
 function buildWheel(force) {
   if (WH.spinning && !force) { WH.dirty = true; return; }
   const tot = cfg.gw.reduce((a, b) => a + b, 0), secs = []; let a = 0;
@@ -303,7 +306,7 @@ function readCfg() {
   cfg.sorted = [...new Set(cfg.pool)].sort((a, b) => a - b);
   cfg.gw = GUN_KEYS.map(k => n('cfg-w-' + k, 0, 0, 1000));
   if (cfg.gw.every(x => x <= 0)) cfg.gw = [1, 1, 1, 1];
-  cfg.spinT = n('cfg-spint', 2.2, .6, 6);
+  cfg.spinT = n('cfg-spint', 1.4, .4, 4);
   cfg.shotMode = v('cfg-shotmode') === 'pierce' ? 'pierce' : 'spread';
   cfg.shotN = Math.round(n('cfg-shotn', 3, 2, 9));
   cfg.snipeX = n('cfg-snipex', 2, 1, 10);
@@ -511,35 +514,34 @@ function mineCollect(x) {
 }
 
 // ---------- turn flow ----------
-async function spinWheel() {
+// Release: the gun is drawn by weight, then the wheel decelerates from its current speed onto that sector.
+async function stopWheel() {
   const k = wpick(GUN_KEYS, cfg.gw);
   const opts = WH.sectors.map((s, i) => ({ s, i })).filter(o => o.s.k === k), { s: sec, i: si } = pick(opts);
   const m = (sec.e - sec.s) * .15, th = R(sec.s + m, sec.e - m);
-  let target = -Math.PI / 2 - th; const min = WH.a + (4 + RI(0, 1)) * TAU;
-  while (target < min) target += TAU;
-  WH.spinning = true; WH.glow = -1;
-  await tween(WH, { a: target }, cfg.spinT, EZ.spin);
+  const w = Math.max(WH.w, 8), D0 = w * cfg.spinT / 3; // EZ.out starts at 3× average speed, so this keeps the release speed
+  let delta = ((-Math.PI / 2 - th - (WH.a + D0)) % TAU + TAU) % TAU; if (delta > Math.PI) delta -= TAU;
+  let D = D0 + delta; if (D < 2) D += TAU;
+  WH.w = 0;
+  await tween(WH, { a: WH.a + D }, clamp(D * 3 / w, .4, 4), EZ.out);
   WH.spinning = false; WH.a = ((WH.a % TAU) + TAU) % TAU; WH.glow = si; WH.glowT = 0;
   return k;
 }
-async function presentGun(k) {
+async function presentGun(k, x) {
   SFX.land();
   Object.assign(GN, { k, x: WH.cx, y: WH.cy, sc: 0, ang: 0, vis: true, flash: 0, recoil: 0 });
   banner(GUNS[k].name, GUNS[k].color, gunDesc(k));
-  await tween(GN, { sc: 1.7 }, .2, EZ.back);
-  await wait(.22);
-  await tween(GN, { x: 650, y: railY() + 6, sc: 1 }, .38, EZ.io);
+  await tween(GN, { sc: 1.5 }, .14, EZ.back);
+  await tween(GN, { x, y: railY() + 6, sc: 1 }, .26, EZ.io);
   SFX.tick(.2);
 }
 function playerAim() { S.hover = null; return new Promise(res => { S.aimRes = res; }); }
 const angTo = t => Math.atan2(t.x - GN.x, GN.y - t.y);
-async function autoAim(k) {
-  const t = chooseAutoTarget(k), path = [];
-  for (let i = 0, n = RI(1, 2); i < n; i++) path.push(RI(0, G.n - 1));
-  path.push(t.c);
-  for (const col of path) { await tween(GN, { x: colX(col) }, .14, EZ.io); G.colGlow[col] = 1; SFX.tick(col / G.n); await wait(.05); }
-  await tween(GN, { ang: k === 'shot' && cfg.shotMode === 'pierce' ? 0 : angTo(t) }, .08);
-  S.lock = { t }; await wait(.32);
+// Auto aim: the gun arrives under the target's column, the lock flashes once, then it fires.
+async function autoAim(k, t = chooseAutoTarget(k)) {
+  G.colGlow[t.c] = 1;
+  await tween(GN, { x: colX(t.c), ang: k === 'shot' && cfg.shotMode === 'pierce' ? 0 : angTo(t) }, .08);
+  S.lock = { t }; await wait(.14);
   return t;
 }
 const muzzle = () => { const L = GUN_LEN[GN.k] * GN.sc; return { x: GN.x + Math.sin(GN.ang) * L, y: GN.y - Math.cos(GN.ang) * L }; };
@@ -588,18 +590,27 @@ async function fire(k, t) {
   await shoot(m.x, m.y, t.x, t.y, .22, 'ice', col);
   await hit(t, { src: 'ice', freeze: true });
 }
-async function playTurn() {
-  if (S.phase === 'end') { if (!S.settle || S.settle.t < .6) return; restart(); }
-  if (S.phase !== 'ready' || G.spinsLeft <= 0 || G.cleared) return;
+// Press and hold spins the wheel up (see update); releasing stops it and the gun it lands on fires right away.
+function beginHold() {
+  if (S.phase === 'end') { if (!S.settle || S.settle.t < .6) return false; restart(); }
+  if (S.phase !== 'ready' || G.spinsLeft <= 0 || G.cleared) return false;
   SFX.unlock();
-  G.spinsLeft--; G.spinNo++;
-  S.phase = 'spin'; GN.vis = false;
   if (WH.dirty) buildWheel(true);
-  const k = await spinWheel();
+  G.spinsLeft--; G.spinNo++;
+  S.phase = 'hold'; GN.vis = false; WH.glow = -1; WH.spinning = true; WH.w = Math.max(WH.w, 4);
+  return true;
+}
+function releaseHold() { if (S.phase === 'hold') playTurn(); }
+async function quickSpin(hold = R(.5, .8)) { if (!beginHold()) return; await wait(hold); releaseHold(); }
+async function playTurn() {
+  S.phase = 'spin';
+  const k = await stopWheel();
   log(`第 ${G.spinNo} 轉 → ${GUNS[k].name}（${gunDesc(k)}）`, 'wheel');
-  S.phase = 'gun'; await presentGun(k);
+  S.phase = 'gun';
+  const auto = cfg.aim === 'auto' ? chooseAutoTarget(k) : null;
+  await presentGun(k, auto ? colX(auto.c) : 650);
   S.phase = 'aim';
-  const t = cfg.aim === 'player' ? await playerAim() : await autoAim(k);
+  const t = auto ? await autoAim(k, auto) : await playerAim();
   S.phase = 'fire'; await fire(k, t);
   await afterShot();
 }
@@ -608,7 +619,7 @@ async function afterShot() {
   if (G.cleared || !G.cells.some(targetable)) return endCard(G.cleared ? 'mine' : 'clear');
   if (G.spinsLeft <= 0) return endCard('spins');
   S.phase = 'ready';
-  if (S.autoSpin) { await wait(.45); playTurn(); }
+  if (S.autoSpin) { await wait(.45); quickSpin(); }
 }
 async function endCard(reason) {
   S.phase = 'end';
@@ -638,7 +649,7 @@ async function forceGold() {
 function restart() {
   cancelAll(); readCfg(); parts.length = 0; goldQ = Promise.resolve();
   Object.assign(S, { phase: 'ready', settle: null, pops: [], beams: [], rings: [], flyers: [], banner: null, lock: null, hover: null, laser: null, scope: null, aimRes: null, flash: 0, shake: 0, cam: { x: 480, y: 270, z: 1 } });
-  GN.vis = false; GN.k = null; WH.spinning = false; buildWheel();
+  GN.vis = false; GN.k = null; WH.spinning = false; WH.w = 0; buildWheel();
   newBoard(); log(`新的一張卡：${cfg.size}×${cfg.size}，${cfg.spins} 轉`);
 }
 
@@ -648,15 +659,20 @@ document.getElementById('cfg').addEventListener('change', () => {
   if (S.phase === 'aim' && cfg.aim === 'auto' && S.aimRes) { const r = S.aimRes; S.aimRes = null; autoAim(GN.k).then(r); }
 });
 document.getElementById('cfg').addEventListener('submit', e => e.preventDefault());
-document.getElementById('btn-spin').addEventListener('click', () => playTurn());
+const spinBtn = document.getElementById('btn-spin');
+spinBtn.addEventListener('pointerdown', e => { if (e.button > 0) return; spinBtn.setPointerCapture(e.pointerId); beginHold(); });
+spinBtn.addEventListener('click', e => { if (e.detail === 0) quickSpin(); }); // keyboard activation
+spinBtn.addEventListener('contextmenu', e => e.preventDefault());
+addEventListener('pointerup', releaseHold); addEventListener('pointercancel', releaseHold);
 document.getElementById('btn-restart').addEventListener('click', () => { restart(); });
 document.getElementById('btn-gold').addEventListener('click', () => forceGold());
 document.getElementById('btn-auto').addEventListener('click', e => {
   S.autoSpin = !S.autoSpin; e.currentTarget.textContent = '自動連轉：' + (S.autoSpin ? '開' : '關'); e.currentTarget.setAttribute('aria-pressed', String(S.autoSpin));
-  if (S.autoSpin && S.phase === 'ready') playTurn();
+  if (S.autoSpin) quickSpin();
 });
 document.getElementById('btn-sound').addEventListener('click', e => { SFX.set(!SFX.on); e.currentTarget.textContent = '音效：' + (SFX.on ? '開' : '關'); e.currentTarget.setAttribute('aria-pressed', String(SFX.on)); });
-addEventListener('keydown', e => { if (e.code !== 'Space' || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return; e.preventDefault(); playTurn(); });
+addEventListener('keydown', e => { if (e.code !== 'Space' || /INPUT|SELECT|TEXTAREA|BUTTON/.test(e.target.tagName)) return; e.preventDefault(); if (!e.repeat) beginHold(); });
+addEventListener('keyup', e => { if (e.code === 'Space') releaseHold(); });
 function lp(e) { const r = cv.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * W, y: (e.clientY - r.top) / r.height * H }; }
 function cellAt(x, y) { const h = G.cw / 2 + G.gap / 2; return G.cells.find(c => Math.abs(x - c.x) <= h && Math.abs(y - c.y) <= h) || null; }
 function aimCandidate(p) {
@@ -664,18 +680,17 @@ function aimCandidate(p) {
   if (GN.k === 'shot' && cfg.shotMode === 'pierce') { const list = pierceList(c.c); return list.length ? list[0] : null; }
   return targetable(c) ? c : null;
 }
-const overWheel = p => Math.hypot(p.x - WH.cx, p.y - WH.cy) < WH.r + 16;
 cv.addEventListener('pointermove', e => {
   const p = lp(e), aiming = S.phase === 'aim' && cfg.aim === 'player';
   if (aiming) S.hover = aimCandidate(p);
-  cv.style.cursor = (aiming && S.hover) || (S.phase === 'ready' && overWheel(p)) || (S.phase === 'end' && S.settle) ? 'pointer' : 'default';
+  cv.style.cursor = (aiming && S.hover) || S.phase === 'ready' || S.phase === 'hold' || (S.phase === 'end' && S.settle) ? 'pointer' : 'default';
 });
 cv.addEventListener('pointerdown', e => {
   SFX.unlock(); const p = lp(e);
   if (S.phase === 'aim' && cfg.aim === 'player' && S.aimRes) { const t = aimCandidate(p); if (t) { const res = S.aimRes; S.aimRes = null; res(t); } return; }
-  if (S.phase === 'ready' && overWheel(p)) { playTurn(); return; }
-  if (S.phase === 'end' && S.settle && S.settle.t > .6) restart();
+  if (beginHold()) cv.setPointerCapture(e.pointerId);
 });
+cv.addEventListener('contextmenu', e => e.preventDefault());
 
 // ---------- update ----------
 function projPos(p, t = p.t) { const k = clamp(t / p.dur, 0, 1); let x = lerp(p.x0, p.x1, k), y = lerp(p.y0, p.y1, k); if (p.arc) { const dx = p.x1 - p.x0, dy = p.y1 - p.y0, L = Math.hypot(dx, dy) || 1, o = Math.sin(Math.PI * k) * p.arc; x += -dy / L * o; y += dx / L * o; } return { x, y }; }
@@ -697,6 +712,7 @@ function update(dt) {
   if (S.banner && (S.banner.t += dt) > S.banner.max) S.banner = null;
   if (S.scope) S.scope.p = Math.max(0, S.scope.p - dt * 3);
   for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; if (p.life <= 0) { parts.splice(i, 1); continue; } p.vy += p.g * dt; if (p.kind === 'smoke') p.vx *= 1 - dt * 1.5; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; }
+  if (S.phase === 'hold') { WH.w = Math.min(16, WH.w + 26 * dt); WH.a += WH.w * dt; }
   // wheel ticks: one click per sector boundary under the pointer
   const si = sectorAtPointer(); if (si !== WH.cur) { if (WH.spinning) { SFX.wheel(); WH.flap = 1; } WH.cur = si; }
   WH.flap = Math.max(0, WH.flap - dt * 7); WH.glowT += dt;
@@ -737,7 +753,7 @@ function drawWheel() {
   ctx.strokeStyle = '#d9a743'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, r + 17, 0, TAU); ctx.stroke();
   const NB = 20, landed = WH.glow >= 0 && WH.glowT < 1.4;
   for (let i = 0; i < NB; i++) {
-    const a = i / NB * TAU, on = WH.spinning ? (i + Math.floor(S.t * 14)) % 3 === 0 : landed ? Math.floor(S.t * 8) % 2 === 0 : (i + Math.floor(S.t * 2)) % 2 === 0;
+    const a = i / NB * TAU, on = WH.spinning ? (i + Math.floor(S.t * (S.phase === 'hold' ? 8 + WH.w * 1.6 : 14))) % 3 === 0 : landed ? Math.floor(S.t * 8) % 2 === 0 : (i + Math.floor(S.t * 2)) % 2 === 0;
     ctx.fillStyle = on ? '#ffe08a' : '#5a4636'; circle(cx + Math.cos(a) * (r + 9), cy + Math.sin(a) * (r + 9), 3.2);
   }
   ctx.save(); ctx.translate(cx, cy); ctx.rotate(WH.a);
@@ -756,14 +772,14 @@ function drawWheel() {
   const ready = S.phase === 'ready';
   if (ready) { ctx.strokeStyle = `rgba(255,138,61,${.4 + .4 * Math.sin(S.t * 5)})`; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(cx, cy, 40, 0, TAU); ctx.stroke(); }
   ctx.fillStyle = '#1d1915'; circle(cx, cy, 34); ctx.strokeStyle = '#d9a743'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(cx, cy, 34, 0, TAU); ctx.stroke();
-  txt('轉', cx, cy + 1, 24, ready ? '#ff8a3d' : '#7a6a5c', 'center', 900, 'Noto Serif TC');
+  txt(S.phase === 'hold' ? '放' : '轉', cx, cy + 1, 24, ready || S.phase === 'hold' ? '#ff8a3d' : '#7a6a5c', 'center', 900, 'Noto Serif TC');
   ctx.save(); ctx.translate(cx, cy - r - 20); ctx.rotate(-WH.flap * .35);
   ctx.fillStyle = '#ff8a3d'; ctx.strokeStyle = '#1b0f06'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-13, -8); ctx.lineTo(13, -8); ctx.lineTo(0, 24); ctx.closePath(); ctx.fill(); ctx.stroke();
   ctx.restore();
 }
 function drawGunLabel() {
-  const y = 497, active = GN.k && S.phase !== 'ready' && S.phase !== 'spin';
-  const s = active ? `${GUNS[GN.k].name} · ${gunDesc(GN.k)}` : S.phase === 'spin' ? '轉盤轉動中…' : '轉盤決定這一槍用哪把槍';
+  const y = 497, active = GN.k && S.phase !== 'ready' && S.phase !== 'hold' && S.phase !== 'spin';
+  const s = active ? `${GUNS[GN.k].name} · ${gunDesc(GN.k)}` : S.phase === 'hold' ? '壓著加速中…放開就開槍' : S.phase === 'spin' ? '減速中…' : '壓住轉盤開始轉';
   const col = active ? GUNS[GN.k].color : '#a6978a';
   ctx.font = '700 14px "Noto Sans TC", sans-serif'; const w = ctx.measureText(s).width + 28;
   ctx.fillStyle = 'rgba(14,11,9,.85)'; rrect(WH.cx - w / 2, y - 15, w, 30, 15); ctx.fill();
@@ -936,8 +952,9 @@ function drawFx() {
 function hudBox(x, y, w, h) { ctx.fillStyle = 'rgba(14,11,9,.86)'; rrect(x, y, w, h, 4); ctx.fill(); ctx.strokeStyle = 'rgba(217,167,67,.25)'; ctx.lineWidth = 1; ctx.stroke(); }
 function phaseText() {
   switch (S.phase) {
-    case 'ready': return G.spinNo ? '按「轉！」或點轉盤轉下一槍' : '按「轉！」或點轉盤中間開始';
-    case 'spin': return '轉盤轉動中…';
+    case 'ready': return '壓住畫面或「轉！」開始轉，放開就開槍';
+    case 'hold': return '轉轉轉…放開就開槍！';
+    case 'spin': return '減速中…';
     case 'gun': return GN.k ? GUNS[GN.k].name + '！' : '';
     case 'aim': return cfg.aim === 'player' ? (GN.k === 'shot' && cfg.shotMode === 'pierce' ? '點一欄開槍（由下往上貫穿）' : '點一格開槍') : '自動瞄準中…';
     case 'fire': return '開槍！';
@@ -979,7 +996,7 @@ function drawSettle() {
   txt(s.why, 480, py + 64, 13, '#ff8a3d', 'center', 700);
   txt(fmt(Math.round(s.value * EZ.out(clamp(s.t / 1.2, 0, 1)))), 480, py + 108, 44, '#ffd56a', 'center', 700, 'Silkscreen');
   rows.forEach(([k, label], i) => { const y = py + 148 + i * 24; txt(label, 330, y, 14, '#a6978a', 'left', 500); txt(fmt(G.stats[k]), 630, y, 14, '#f1e7d6', 'right', 700, 'Silkscreen'); });
-  txt('點畫面或按「轉！」換一張新卡', 480, py + ph - 20, 12, '#a6978a', 'center', 500);
+  txt('壓住畫面或「轉！」換一張新卡開轉', 480, py + ph - 20, 12, '#a6978a', 'center', 500);
   ctx.globalAlpha = 1;
 }
 function draw() {
