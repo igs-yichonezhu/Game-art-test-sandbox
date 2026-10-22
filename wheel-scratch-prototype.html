@@ -8,7 +8,7 @@
 :root{
   --soot:#14110e; --panel:#1d1915; --panel-2:#26201b; --line:#3a312a;
   --ink:#f1e7d6; --muted:#a6978a; --ember:#ff8a3d; --brass:#d9a743;
-  --gun-n:#d8cfc2; --gun-s:#ff8a3d; --gun-x:#ff5d73; --gun-i:#62d6ff; --gold:#ffd34d; --mine:#ff5a2a; --card:#3c1d2c;
+  --gun-n:#d8cfc2; --gun-s:#ff8a3d; --gun-x:#ff5d73; --gun-i:#62d6ff; --gun-b:#c08cff; --gold:#ffd34d; --mine:#ff5a2a; --card:#3c1d2c;
   --display:"Noto Serif TC","Songti TC",serif;
   --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --pix:"Silkscreen","Courier New",monospace;
@@ -47,14 +47,14 @@ aside{display:flex;flex-direction:column;gap:16px;min-width:0}
 .cfg .unit{display:flex;gap:6px;align-items:center;min-width:0}
 .cfg .unit input{flex:1 1 56px}
 .cfg .unit span{color:var(--muted);font-size:12px;white-space:nowrap}
-.cfg .w4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
-.cfg .w4 i{display:block;font-style:normal;font-size:11px;color:var(--muted);text-align:center;margin-top:2px}
+.cfg .wts{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.cfg .wts i{display:block;font-style:normal;font-size:11px;color:var(--muted);text-align:center;margin-top:2px}
 .note{font-size:12px;color:var(--muted);margin:10px 0 0}
 #log{list-style:none;margin:0;padding:0;max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;font-size:13px}
 #log li{display:grid;grid-template-columns:44px minmax(0,1fr);gap:8px;align-items:baseline;padding-bottom:6px;border-bottom:1px dashed var(--line)}
 #log .tg{font:700 11px/1.6 var(--body);text-align:center;border-radius:2px;color:#121010;background:var(--muted)}
 #log .t-wheel .tg,#log .t-win .tg{background:var(--brass)} #log .t-normal .tg{background:var(--gun-n)} #log .t-shot .tg{background:var(--gun-s)}
-#log .t-snipe .tg{background:var(--gun-x)} #log .t-ice .tg{background:var(--gun-i)} #log .t-gold .tg{background:var(--gold)} #log .t-mine .tg{background:var(--mine)}
+#log .t-snipe .tg{background:var(--gun-x)} #log .t-ice .tg{background:var(--gun-i)} #log .t-bomb .tg{background:var(--gun-b)} #log .t-gold .tg{background:var(--gold)} #log .t-mine .tg{background:var(--mine)}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
 .head{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:14px 16px;display:flex;flex-direction:column;gap:6px;min-width:0}
 .head .tt{display:flex;align-items:center;gap:10px;font-family:var(--display);font-weight:900;font-size:20px}
@@ -73,10 +73,10 @@ td:first-child{white-space:nowrap}
 <div class="wrap">
   <header>
     <div>
-      <div class="eyebrow">轉盤刮刮樂 · prototype v0.3 · 2026-10-22</div>
+      <div class="eyebrow">轉盤刮刮樂 · prototype v0.4 · 2026-10-22</div>
       <h1>轉盤 × 刮刮樂 <span>原型</span></h1>
     </div>
-    <p class="lead">壓住轉盤開始轉，放開後停在哪把槍，那把槍就自動對刮刮卡開槍，打到的格子刮開、收下數字。一般槍打一格，散彈一次打多格，狙擊打中 ×2，冰凍槍先把格子凍住、再被打中就碎開彈射別格。卡片正中間是金磚，打越多下特效越多，隨時可能爆開變成地雷把整張卡全收。轉數用完或卡片收光就結算。</p>
+    <p class="lead">壓住轉盤開始轉，放開後停在哪把槍，那把槍就自動對刮刮卡開槍，打到的格子刮開、收下數字。一般槍打一格，散彈一次打多格，狙擊打中 ×2，冰凍槍先把格子凍住、再被打中就碎開彈射別格，炸彈丟下去十字炸開、炸過的格子 ×2。卡片正中間是金磚，打越多下特效越多，隨時可能爆開變成地雷把整張卡全收。轉數用完或卡片收光就結算。</p>
   </header>
 
   <div class="grid">
@@ -107,11 +107,12 @@ td:first-child{white-space:nowrap}
 
           <div class="sec">轉盤 · 下一轉生效</div>
           <label>槍枝權重</label>
-          <div class="w4">
+          <div class="wts">
             <span><input id="cfg-w-normal" type="number" min="0" max="1000" value="40" aria-label="一般槍權重"><i>一般</i></span>
             <span><input id="cfg-w-shot" type="number" min="0" max="1000" value="25" aria-label="散彈槍權重"><i>散彈</i></span>
             <span><input id="cfg-w-snipe" type="number" min="0" max="1000" value="20" aria-label="狙擊槍權重"><i>狙擊</i></span>
             <span><input id="cfg-w-ice" type="number" min="0" max="1000" value="15" aria-label="冰凍槍權重"><i>冰凍</i></span>
+            <span><input id="cfg-w-bomb" type="number" min="0" max="1000" value="15" aria-label="炸彈權重"><i>炸彈</i></span>
           </div>
           <label for="cfg-stop">放開後減速</label>
           <div class="unit"><input id="cfg-stop" type="number" min="0.3" max="3" step="0.1" value="0.8"><span>秒左右</span></div>
@@ -125,6 +126,10 @@ td:first-child{white-space:nowrap}
           <div class="unit"><input id="cfg-snipex" type="number" min="1" max="10" step="0.5" value="2"><span>倍</span></div>
           <label for="cfg-shards">碎冰彈射</label>
           <div class="unit"><input id="cfg-shards" type="number" min="1" max="8" value="3"><span>格 / 冰塊碎開時</span></div>
+          <label for="cfg-bombr">炸彈十字</label>
+          <div class="unit"><input id="cfg-bombr" type="number" min="1" max="4" value="1"><span>格 / 每個方向</span></div>
+          <label for="cfg-bombx">炸過倍率</label>
+          <div class="unit"><input id="cfg-bombx" type="number" min="1" max="10" step="0.5" value="2"><span>倍</span></div>
 
           <div class="sec">金磚 → 地雷</div>
           <label for="cfg-g0">第 1 下爆開</label>
@@ -138,7 +143,7 @@ td:first-child{white-space:nowrap}
           <label for="cfg-autogold">打金磚機率</label>
           <div class="unit"><input id="cfg-autogold" type="number" min="0" max="100" value="30"><span>%</span></div>
         </form>
-        <p class="note">要測某把槍：其他槍的權重設 0。要測地雷：按「觸發金磚爆開」，或把必爆設 1。要看整張自己跑完：打開自動連轉。</p>
+        <p class="note">要測某把槍：其他槍的權重設 0。要測地雷：按「觸發金磚爆開」，或把必爆設 1。要看整張自己跑完：打開自動連轉。炸彈十字設 4＝整排整欄。</p>
       </div>
       <div class="box">
         <h2>事件紀錄</h2>
@@ -174,6 +179,11 @@ td:first-child{white-space:nowrap}
       <p>冰凍槍打到金磚當一般命中，不會把金磚凍住。卡片結束時沒打碎的冰塊融化照收。</p>
     </div>
     <div class="head">
+      <div class="tt"><span class="brick" style="background:var(--gun-b)"></span>炸彈</div>
+      <p class="rule">丟到目標格，引信嗶三聲後十字炸開：中心加上下左右各 1 格（可調，4＝整排整欄）。炸到的格子 ×2 收（倍率可調）。</p>
+      <p>炸到冰塊：那格 ×2 再碎開。炸到金磚：倍率幾倍算幾下。已經收掉的格子火焰直接穿過。自動瞄準會挑十字範圍內格子多的位置丟。</p>
+    </div>
+    <div class="head">
       <div class="tt"><span class="brick" style="background:var(--gold)"></span>金磚 → 地雷</div>
       <p class="rule">卡片正中間。每被打中一下就判定一次爆開：第 1 下 10%，之後每下 +15%，第 5 下必爆（參數）。爆開後變成地雷，炸開時把所有還沒收的格子（含冰塊）全收，這張卡直接結算。</p>
       <p>沒爆的時候特效一層層加：裂痕 → 光暈 → 抖動冒火星 → 閃電。右上角顯示下一下的爆開機率。</p>
@@ -189,11 +199,15 @@ td:first-child{white-space:nowrap}
         <tr><td>看到槍就開槍</td><td>轉盤一停，槍直接飛到目標那一欄，落地就開槍，中間沒有停頓。</td></tr>
         <tr><td>滾動定格</td><td>刮開的數字從小往大跳，越大的數字跳越多格；數字越大顏色越紅，最大獎多爆一圈火花。</td></tr>
         <tr><td>狙擊推近</td><td>紅外線拉到目標、鏡頭推近、準星收縮、心跳一下就開槍；×2 蓋章後數字往上數到翻倍。</td></tr>
+        <tr><td>炸彈落地倒數</td><td>炸彈拋物線丟出、落地彈一下，引信嗶三聲越來越快、炸彈發紅膨脹，頓一下才十字炸開，火焰由中心一格一格往外。</td></tr>
         <tr><td>冰塊懸念</td><td>被凍住的格子看得到數字但還沒收，等下一槍打碎才收；碎冰再打別格，打到別的冰塊會連鎖。</td></tr>
         <tr><td>金磚越打越亮</td><td>每打一下特效加一層：裂痕 → 光暈 → 抖動冒火星 → 閃電；右上角顯示下一下的爆開機率。</td></tr>
         <tr><td>假失敗</td><td>每次打中金磚都先膨脹、心跳（打越多下心跳越多下），沒爆就冒煙「撐住了…」。</td></tr>
         <tr><td>地雷倒數</td><td>金磚爆開露出地雷，紅燈越閃越快，最後衝擊波由中心往外，逐格掀開全收。</td></tr>
         <tr><td>結束不落差</td><td>轉數用完時先把冰塊融化收下，再把沒打到的格子翻開（變暗，不算分），最後跳結算明細。</td></tr>
+        <tr><td>收錢節拍</td><td>一槍打到好幾格時不再同時跳分：每格的 +分照固定節拍一格一格入帳，音高一路往上爬；地雷全收就是一長串等速上行。</td></tr>
+        <tr><td>每槍收尾</td><td>打到 2 格以上，最後一格入帳後跳「+這一槍總分」配一個和弦，收得多和弦更長、畫面閃一下，然後才能轉下一轉。</td></tr>
+        <tr><td>頓格</td><td>大衝擊瞬間畫面停一下下（狙擊命中、炸彈炸開、冰塊碎、金磚爆、地雷炸、最大獎落定），讓重拍更有力。</td></tr>
       </tbody>
     </table></div>
   </div>
@@ -211,6 +225,8 @@ td:first-child{white-space:nowrap}
         <tr><td>冰塊什麼時候收</td><td>凍住時只翻開不收，打碎才收；卡片結束時沒打碎的照收。</td><td><span class="pill">原型假設</span></td></tr>
         <tr><td>碎冰打哪裡</td><td>隨機打其他還沒收的格子，包含金磚，打到冰塊會連鎖。</td><td><span class="pill">原型假設</span></td></tr>
         <tr><td>冰凍槍打到金磚</td><td>算 1 下，不會凍住金磚。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>炸彈「炸過 ×2」</td><td>炸到的當下那格就 ×2 收。另一種讀法是「炸過的格子留記號，之後再被打中才 ×2」，還沒做。</td><td><span class="pill">原型假設</span></td></tr>
+        <tr><td>炸彈十字多大</td><td>中心加上下左右各 1 格；可調到 4＝整排整欄。</td><td><span class="pill">原型預設</span></td></tr>
         <tr><td>金磚爆開機率曲線</td><td>第 1 下 10%，每下 +15%，第 5 下必爆。</td><td><span class="pill">原型預設</span></td></tr>
         <tr><td>地雷全收之後</td><td>收完整張卡直接結算，剩下的轉數作廢。也可以改成換新卡繼續轉。</td><td><span class="pill">原型假設</span></td></tr>
         <tr><td>金磚本身值多少</td><td>金磚本身不給分，價值在「地雷全收」。</td><td><span class="pill">原型假設</span></td></tr>
@@ -225,6 +241,7 @@ td:first-child{white-space:nowrap}
     <div class="tbl"><table>
       <thead><tr><th>日期</th><th>誰</th><th>改了什麼</th></tr></thead>
       <tbody>
+        <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.4：轉盤加「炸彈」（丟出、引信、十字炸開，炸過 ×2）；節奏：多格命中照節拍逐格入帳、音高上爬，每槍收尾跳這一槍總分，大衝擊加頓格，地雷全收改成等速連發。</td></tr>
         <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.3：轉盤停下就自動開槍（拿掉玩家點格子）；節奏加快：放開後減速 0.8 秒、槍落地即開、狙擊推近縮短、數字滾動與金磚／地雷演出縮短。</td></tr>
         <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.2：轉盤改成壓住轉、放開停；停下看到槍就自動瞄準開槍（預設自動瞄準，拿掉左右找位置）。</td></tr>
         <tr><td>2026-10-22</td><td>yichonezhu</td><td>v0.1：轉盤選槍（一般／散彈／狙擊／冰凍）＋刮刮卡金磚、地雷全收，依口述規格建立試玩原型。</td></tr>
@@ -260,25 +277,31 @@ function drawDigit(d, cx, cy, px, color) { const g = DIG[d]; ctx.fillStyle = col
 function drawNumber(s, cx, cy, px, color) { s = String(s); const w = s.length * 4 * px - px; let x = cx - w / 2 + 1.5 * px; for (const ch of s) { drawDigit(+ch, x, cy, px, color); x += 4 * px; } }
 
 // ---------- guns ----------
-const GUN_KEYS = ['normal', 'shot', 'snipe', 'ice'];
+const GUN_KEYS = ['normal', 'shot', 'snipe', 'ice', 'bomb'];
 const GUNS = {
   normal: { name: '一般槍', short: '一般', color: '#d8cfc2', fill: '#7d766c', dark: '#3e3a35' },
   shot: { name: '散彈槍', short: '散彈', color: '#ff8a3d', fill: '#d9662a', dark: '#6e2e0e' },
   snipe: { name: '狙擊槍', short: '狙擊', color: '#ff5d73', fill: '#c23b52', dark: '#5c1424' },
   ice: { name: '冰凍槍', short: '冰凍', color: '#62d6ff', fill: '#2b9ccc', dark: '#0f3d52' },
+  bomb: { name: '炸彈', short: '炸彈', color: '#c08cff', fill: '#7a4bc2', dark: '#2e1a4f' },
 };
-const GUN_LEN = { normal: 30, shot: 34, snipe: 50, ice: 32 };
-const SRCNAME = { normal: '一般槍', shot: '散彈', snipe: '狙擊', ice: '冰凍槍', shard: '碎冰', mine: '地雷', melt: '融化' };
-const SRC_TAG = { normal: 'normal', shot: 'shot', snipe: 'snipe', ice: 'ice', shard: 'ice', mine: 'mine', melt: 'ice' };
-const SRC_COLOR = { normal: '#d8cfc2', shot: '#ff8a3d', snipe: '#ff5d73', ice: '#62d6ff', shard: '#bff0ff', mine: '#ff5a2a', melt: '#62d6ff' };
-function gunDesc(k) { return k === 'normal' ? '打一格' : k === 'shot' ? (cfg.shotMode === 'pierce' ? `直線貫穿 ${cfg.shotN} 格` : `散開打 ${cfg.shotN} 格`) : k === 'snipe' ? `打中 ×${cfg.snipeX}` : '凍住，再被打就碎開'; }
+const GUN_LEN = { normal: 30, shot: 34, snipe: 50, ice: 32, bomb: 22 };
+const SRCNAME = { normal: '一般槍', shot: '散彈', snipe: '狙擊', ice: '冰凍槍', shard: '碎冰', mine: '地雷', melt: '融化', bomb: '炸彈' };
+const SRC_TAG = { normal: 'normal', shot: 'shot', snipe: 'snipe', ice: 'ice', shard: 'ice', mine: 'mine', melt: 'ice', bomb: 'bomb' };
+const SRC_COLOR = { normal: '#d8cfc2', shot: '#ff8a3d', snipe: '#ff5d73', ice: '#62d6ff', shard: '#bff0ff', mine: '#ff5a2a', melt: '#62d6ff', bomb: '#c08cff' };
+function gunDesc(k) { return k === 'normal' ? '打一格' : k === 'shot' ? (cfg.shotMode === 'pierce' ? `直線貫穿 ${cfg.shotN} 格` : `散開打 ${cfg.shotN} 格`) : k === 'snipe' ? `打中 ×${cfg.snipeX}` : k === 'bomb' ? `十字炸，炸過 ×${cfg.bombX}` : '凍住，再被打就碎開'; }
 // Gun drawn barrel-up around its grip; mono paints a single-color silhouette (used on the wheel).
 function drawGun(k, mono) {
   const F = c => { ctx.fillStyle = mono || c; };
   if (k === 'normal') { F('#59534c'); ctx.fillRect(-9, -6, 18, 20); F('#cfc6b8'); ctx.fillRect(-4, -30, 8, 26); F('#8d867b'); ctx.fillRect(-6, -12, 12, 6); F('#2e2824'); ctx.fillRect(-3, 12, 6, 10); }
   else if (k === 'shot') { F('#8a3f12'); ctx.fillRect(-14, -6, 28, 20); F('#ff8a3d'); ctx.fillRect(-11, -34, 9, 30); ctx.fillRect(2, -34, 9, 30); F('#ffcf7a'); ctx.fillRect(-11, -34, 9, 4); ctx.fillRect(2, -34, 9, 4); F('#3a2a20'); ctx.fillRect(-5, 12, 10, 10); }
   else if (k === 'snipe') { F('#3b2a2e'); ctx.fillRect(-8, -4, 16, 22); F('#ff5d73'); ctx.fillRect(-3, -48, 6, 46); F('#2b1d20'); ctx.fillRect(-6, -26, 12, 14); F('#ffd2d9'); ctx.fillRect(-3, -27, 6, 3); F('#7d1f2e'); ctx.fillRect(-5, -51, 10, 4); }
-  else { F('#1b5a73'); circle(0, 8, 12); F('#bff0ff'); circle(-3, 5, 4); F('#62d6ff'); ctx.fillRect(-6, -30, 12, 30); F('#e6fbff'); ctx.fillRect(-8, -33, 16, 5); ctx.fillRect(-8, -18, 16, 3); }
+  else if (k === 'ice') { F('#1b5a73'); circle(0, 8, 12); F('#bff0ff'); circle(-3, 5, 4); F('#62d6ff'); ctx.fillRect(-6, -30, 12, 30); F('#e6fbff'); ctx.fillRect(-8, -33, 16, 5); ctx.fillRect(-8, -18, 16, 3); }
+  else {
+    F('#2a2333'); circle(0, -6, 12); F('#5a4a6e'); circle(-4, -10, 3.5); F('#8a7a9e'); ctx.fillRect(-3, -21, 6, 5);
+    if (mono) ctx.fillRect(-1, -30, 3, 9);
+    else { ctx.strokeStyle = '#d8c39a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -21); ctx.quadraticCurveTo(7, -27, 2, -32); ctx.stroke(); F('#ffd34d'); star(2, -33, 4 + Math.sin(S.t * 30) * 1.5, 1.2); }
+  }
 }
 
 // ---------- wheel ----------
@@ -304,12 +327,14 @@ function readCfg() {
   cfg.poolW = cfg.pool.map((_, i) => Number.isFinite(ws[i]) && ws[i] >= 0 ? ws[i] : 1);
   cfg.sorted = [...new Set(cfg.pool)].sort((a, b) => a - b);
   cfg.gw = GUN_KEYS.map(k => n('cfg-w-' + k, 0, 0, 1000));
-  if (cfg.gw.every(x => x <= 0)) cfg.gw = [1, 1, 1, 1];
+  if (cfg.gw.every(x => x <= 0)) cfg.gw = GUN_KEYS.map(() => 1);
   cfg.spinT = n('cfg-stop', .8, .3, 3);
   cfg.shotMode = v('cfg-shotmode') === 'pierce' ? 'pierce' : 'spread';
   cfg.shotN = Math.round(n('cfg-shotn', 3, 2, 9));
   cfg.snipeX = n('cfg-snipex', 2, 1, 10);
   cfg.shards = Math.round(n('cfg-shards', 3, 1, 8));
+  cfg.bombR = Math.round(n('cfg-bombr', 1, 1, 4));
+  cfg.bombX = n('cfg-bombx', 2, 1, 10);
   cfg.g0 = n('cfg-g0', 10, 0, 100) / 100;
   cfg.gInc = n('cfg-ginc', 15, 0, 100) / 100;
   cfg.gMust = Math.round(n('cfg-gmust', 5, 1, 20));
@@ -319,12 +344,12 @@ function readCfg() {
 const goldP = h => h >= cfg.gMust ? 1 : clamp(cfg.g0 + cfg.gInc * (h - 1), 0, 1);
 
 // ---------- event log ----------
-const logEl = document.getElementById('log'), TAGS = { wheel: '轉盤', normal: '一般', shot: '散彈', snipe: '狙擊', ice: '冰凍', gold: '金磚', mine: '地雷', win: '結算', sys: '腳本' };
+const logEl = document.getElementById('log'), TAGS = { wheel: '轉盤', normal: '一般', shot: '散彈', snipe: '狙擊', ice: '冰凍', gold: '金磚', mine: '地雷', bomb: '炸彈', win: '結算', sys: '腳本' };
 function log(msg, tag = 'sys') { const li = document.createElement('li'); li.className = 't-' + tag; li.innerHTML = `<span class="tg">${TAGS[tag] || tag}</span><span>${msg}</span>`; logEl.prepend(li); while (logEl.children.length > 120) logEl.lastChild.remove(); }
 
 // ---------- sound (synthesized, starts after first click) ----------
 const SFX = (() => {
-  let ac = null, on = true, nb = null, lastWheel = 0, lastCoin = 0, lastTick = 0;
+  let ac = null, on = true, nb = null, lastWheel = 0, lastTick = 0;
   const get = () => { if (!on) return null; if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } } if (ac.state === 'suspended') ac.resume(); return ac; };
   function tone(f, dur, type = 'square', vol = .05, f2, delay = 0) { const a = get(); if (!a) return; const o = a.createOscillator(), g = a.createGain(), t = a.currentTime + delay; o.type = type; o.frequency.setValueAtTime(f, t); if (f2) o.frequency.exponentialRampToValueAtTime(f2, t + dur); g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(.0001, t + dur); o.connect(g).connect(a.destination); o.start(t); o.stop(t + dur + .02); }
   function noise(dur, vol, f0, f1, q = 1, type = 'bandpass', delay = 0) {
@@ -352,7 +377,11 @@ const SFX = (() => {
     beep() { tone(1250, .07, 'square', .06); },
     boom() { noise(1.1, .75, 900, 50, .4, 'lowpass'); tone(70, .9, 'sine', .5, 24); },
     stamp() { tone(220, .1, 'square', .08, 110); noise(.06, .2, 1500); },
-    coin() { const n = performance.now(); if (n - lastCoin < 45) return; lastCoin = n; tone(1975, .05, 'square', .022); tone(2637, .09, 'square', .022, null, .05); },
+    cash(n) { const sc = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21, 24], L = sc.length, i = n <= L ? n - 1 : (n - L) % 2 ? L - 2 : L - 1, f = 523 * Math.pow(2, sc[i] / 12); tone(f, .09, 'square', .03); tone(f * 2, .07, 'sine', .02, null, .02); }, // climbs a pentatonic scale, then trills on the top two notes
+    chord(big) { const b = big ? 523 : 659; [0, 4, 7, 12].forEach((s, i) => tone(b * Math.pow(2, s / 12), big ? .45 : .22, 'square', .04, null, i * (big ? .06 : .035))); },
+    toss() { tone(260, .3, 'triangle', .06, 720); },
+    thud() { tone(120, .12, 'sine', .28, 60); noise(.08, .16, 400, null, .7, 'lowpass'); },
+    fuse() { tone(1700, .05, 'square', .04); noise(.05, .1, 3500, null, 2); },
     win() { [523, 659, 784, 1046].forEach((f, i) => tone(f, .28, 'square', .05, null, i * .11)); }
   };
 })();
@@ -365,7 +394,7 @@ function shoot(x0, y0, x1, y1, dur, kind, color, arc = 0) { return new Promise(r
 function cancelAll() { timers = []; tweens = []; projs = []; }
 
 // ---------- state & particles ----------
-const S = { phase: 'ready', t: 0, shake: 0, flash: 0, pops: [], beams: [], rings: [], flyers: [], banner: null, settle: null, lock: null, laser: null, scope: null, autoSpin: false, cam: { x: 480, y: 270, z: 1 } };
+const S = { phase: 'ready', t: 0, shake: 0, flash: 0, pops: [], beams: [], rings: [], flyers: [], flames: [], bomb: null, cashQ: [], cashT: 0, shot: { sum: 0, n: 0 }, hitstop: 0, banner: null, settle: null, lock: null, laser: null, scope: null, autoSpin: false, cam: { x: 480, y: 270, z: 1 } };
 const GN = { k: null, x: 650, y: 508, ang: 0, sc: 1, vis: false, flash: 0, recoil: 0 };
 const parts = [];
 function addP(o) { const p = Object.assign({ kind: 'sq', vx: 0, vy: 0, g: 0, life: 1, size: 4, color: '#fff', rot: R(0, TAU), vr: R(-8, 8) }, o); p.max = p.life; parts.push(p); }
@@ -374,6 +403,9 @@ function flakes(c) { const w = G.cw; for (let i = 0; i < 10; i++) addP({ kind: '
 function iceBurst(c, n = 22) { for (let i = 0; i < n; i++) { const a = R(0, TAU), s = R(80, 300); addP({ kind: 'ice', x: c.x, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 40, g: 420, life: R(.4, .8), size: R(4, 9), color: pick(['#bff0ff', '#62d6ff', '#ffffff']) }); } }
 function pop(text, x, y, color, size = 22) { S.pops.push({ text, x, y, color, size, t: 0, max: 1.2 }); }
 function banner(text, color, sub) { S.banner = { text, color, sub, t: 0, max: .8 }; }
+function hitstop(s) { S.hitstop = Math.max(S.hitstop, s); }
+async function drained() { while (S.cashQ.length) await wait(.03); }
+const PAY_BEAT = 1 / 15; // seconds between cash-ins; the mine sweep uses the same beat
 
 // ---------- board ----------
 const G = { n: 5, cw: 68, gap: 6, x0: 0, y0: 0, tw: 0, cells: [], gold: null, colGlow: [], total: 0, shown: 0, stats: {}, spinsLeft: 0, spinsTotal: 0, spinNo: 0, cleared: false };
@@ -397,6 +429,12 @@ function targetable(c) {
   return !c.res && (c.st === 'cover' || c.st === 'ice');
 }
 const pierceList = col => G.cells.filter(c => c.c === col && targetable(c)).sort((a, b) => b.r - a.r).slice(0, cfg.shotN);
+// Cross blast cells grouped by distance from the center: [[center], [arm 1], [arm 2], ...].
+function crossRings(t) {
+  const out = [[t]];
+  for (let d = 1; d <= cfg.bombR; d++) { const ring = [[-d, 0], [d, 0], [0, -d], [0, d]].map(([dr, dc]) => G.cells.find(c => c.r === t.r + dr && c.c === t.c + dc)).filter(Boolean); if (ring.length) out.push(ring); }
+  return out;
+}
 function spreadTargets(t, N) {
   const out = [t];
   for (let rad = 1; out.length < N && rad < G.n; rad++) {
@@ -408,17 +446,20 @@ function spreadTargets(t, N) {
 function chooseAutoTarget(k) {
   const all = G.cells.filter(targetable), gold = all.find(c => c.kind === 'gold'), nums = all.filter(c => c.kind === 'num');
   if (gold && (!nums.length || Math.random() < cfg.autoGold)) return gold;
+  if (k === 'bomb') return wpick(nums, nums.map(c => Math.pow(crossRings(c).flat().filter(targetable).length, 2))); // 炸彈挑十字內格子多的位置
   return wpick(nums, nums.map(c => c.st === 'ice' ? (k === 'ice' ? 1 : 3) : 1)); // 自動瞄準偏好打冰塊（觸發碎冰）
 }
 function valColor(v) { const s = cfg.sorted, n = s.length; if (v >= s[n - 1]) return '#ff5a2a'; if (n > 1 && v >= s[n - 2]) return '#ff8f2e'; if (n > 2 && v >= s[Math.floor(n / 2)]) return '#ffc04a'; return '#ffe7a6'; }
 const isTop = v => v >= cfg.sorted[cfg.sorted.length - 1];
 function digitPx(len) { return Math.max(2, Math.min(G.n === 5 ? 6 : 9, Math.floor((G.cw - 14) / (len * 4 - 1)))); }
 
-function collect(c, amt, src) {
-  G.total += amt; G.stats[src] = (G.stats[src] || 0) + amt;
-  c.by = src; c.f = 1; c.fc = SRC_COLOR[src];
+// Cash-ins queue up and pay out on a steady beat with rising pitch (see update), so a multi-hit shot reads as one roll.
+function collect(c, amt, src) { c.by = src; S.cashQ.push({ c, amt, src }); }
+function payOut({ c, amt, src }) {
+  G.total += amt; G.stats[src] = (G.stats[src] || 0) + amt; S.shot.sum += amt; S.shot.n++;
+  c.f = 1; c.fc = SRC_COLOR[src]; c.dy = -6;
   pop('+' + fmt(amt), c.x, c.y - 26, '#ffe08a', isTop(c.v) || amt >= cfg.sorted[cfg.sorted.length - 1] ? 26 : 19);
-  S.flyers.push({ x0: c.x, y0: c.y, t: 0, dur: R(.45, .65) }); SFX.coin();
+  S.flyers.push({ x0: c.x, y0: c.y, t: 0, dur: R(.4, .55) }); SFX.cash(S.shot.n);
 }
 // Scratch reveal: the number counts upward through the pool and lands on its value (bigger values take more steps).
 function reveal(c) {
@@ -457,13 +498,13 @@ async function hit(c, o) {
 }
 async function shatter(c, o) {
   c.st = 'shatter'; const mult = o.mult || 1;
-  SFX.shatter(); S.shake = Math.max(S.shake, .25); c.iceA = 0; iceBurst(c);
+  SFX.shatter(); hitstop(.04); S.shake = Math.max(S.shake, .25); c.iceA = 0; iceBurst(c);
   if (mult > 1) await multUp(c, mult);
   const amt = Math.round(c.v * mult); c.st = 'done'; collect(c, amt, 'ice');
   const ts = G.cleared ? [] : shuffle(G.cells.filter(x => x !== c && targetable(x))).slice(0, cfg.shards);
   log(`冰塊被${SRCNAME[o.src]}打碎 → +${fmt(amt)}，碎冰彈射 ${ts.length} 格`, 'ice');
   ts.forEach(x => { if (x.kind === 'num') x.res = true; });
-  await Promise.all(ts.map((x, i) => wait(i * .04).then(() => shoot(c.x, c.y, x.x, x.y, .18 + R(0, .04), 'shard', '#bff0ff', R(-50, 50))).then(() => hit(x, { src: 'shard' }))));
+  await Promise.all(ts.map((x, i) => wait(i * .07).then(() => shoot(c.x, c.y, x.x, x.y, .18 + R(0, .04), 'shard', '#bff0ff', R(-50, 50))).then(() => hit(x, { src: 'shard' }))));
 }
 // Gold hits queue up so concurrent pellets/shards resolve one at a time.
 let goldQ = Promise.resolve();
@@ -487,21 +528,23 @@ async function doGoldHit(src, note = '') {
 async function goldExplode() {
   const g = G.gold, c = g.cell; if (g.st === 'burst' || g.st === 'mine' || g.st === 'crater') return;
   g.st = 'burst'; G.cleared = true;
-  S.flash = 1; S.shake = .6; SFX.boom();
+  S.flash = 1; S.shake = .6; SFX.boom(); hitstop(.12);
   for (let i = 0; i < 26; i++) { const a = R(0, TAU), s = R(120, 420); addP({ kind: 'gold', x: c.x, y: c.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120, g: 700, life: R(.6, 1.1), size: R(6, 12), color: pick(['#ffd34d', '#ffe88a', '#e0a92a', '#b07a12']) }); }
   banner('金磚爆開！', '#ffd34d', '變成地雷…');
   log('金磚爆開 → 變成地雷', 'mine');
   await wait(.25);
   g.st = 'mine'; g.mineSc = 0; SFX.land(); await tween(g, { mineSc: 1 }, .2, EZ.back);
   for (const t of [.22, .16, .12, .09, .07, .05]) { g.blink = 1; SFX.beep(); await wait(t); }
-  g.st = 'crater'; S.flash = 1.2; S.shake = 1; SFX.boom();
+  g.st = 'crater'; S.flash = 1.2; S.shake = 1; SFX.boom(); hitstop(.14);
   S.rings.push({ x: c.x, y: c.y, t: 0, dur: .9, max: 560, color: '#ff8a3d' }, { x: c.x, y: c.y, t: -.12, dur: .9, max: 520, color: '#ffd34d' });
   burst(c.x, c.y, '#ff8a3d', 30, 380); burst(c.x, c.y, '#ffd34d', 20, 300);
   for (let i = 0; i < 12; i++) addP({ kind: 'smoke', x: c.x + R(-20, 20), y: c.y + R(-20, 20), vx: R(-60, 60), vy: R(-80, -20), life: R(.8, 1.4), size: R(8, 14), color: '#5a4a40' });
-  const list = G.cells.filter(x => x.kind === 'num' && (x.st === 'cover' || x.st === 'ice'));
+  const dist = x => Math.hypot(x.x - c.x, x.y - c.y);
+  const list = G.cells.filter(x => x.kind === 'num' && (x.st === 'cover' || x.st === 'ice')).sort((a, b) => dist(a) - dist(b));
   let sum = 0;
-  await Promise.all(list.map(x => wait(Math.hypot(x.x - c.x, x.y - c.y) / 560 * .9).then(() => { sum += mineCollect(x); })));
-  if (list.length) banner(`地雷全收 +${fmt(sum)}`, '#ff8a3d', `${list.length} 格一次收下`); else banner('地雷炸開', '#ff8a3d', '卡片已經收光了');
+  for (const x of list) { sum += mineCollect(x); await wait(PAY_BEAT); } // nearest first, one cell per beat: an even drumroll
+  await drained();
+  if (list.length) { banner(`地雷全收 +${fmt(sum)}`, '#ff8a3d', `${list.length} 格一次收下`); SFX.chord(true); } else banner('地雷炸開', '#ff8a3d', '卡片已經收光了');
   log(`地雷全收 ${list.length} 格 → +${fmt(sum)}`, 'mine');
   await wait(.5);
 }
@@ -562,7 +605,7 @@ async function fire(k, t) {
     const ts = spreadTargets(t, cfg.shotN); ts.forEach(c => { if (c.kind === 'num') c.res = true; });
     SFX.shotgun(); kick(col); log(`散彈散開打 ${ts.length} 格`, 'shot');
     const m = muzzle();
-    await Promise.all(ts.map((c, i) => shoot(m.x, m.y, c.x + R(-5, 5), c.y + R(-5, 5), .13 + i * .035, 'pellet', '#ffcf7a').then(() => hit(c, { src: 'shot' }))));
+    await Promise.all(ts.map((c, i) => shoot(m.x, m.y, c.x + R(-5, 5), c.y + R(-5, 5), .12 + i * .06, 'pellet', '#ffcf7a').then(() => hit(c, { src: 'shot' }))));
     return;
   }
   if (k === 'snipe') {
@@ -573,11 +616,27 @@ async function fire(k, t) {
     tween(S.cam, { x: lerp(480, t.x, .55), y: lerp(270, t.y, .55), z: 1.45 }, .22, EZ.io);
     await tween(S.scope, { r: G.cw * .5, a: 1 }, .22, EZ.out);
     SFX.beat(); S.scope.p = 1; await wait(.12);
-    SFX.sniper(); kick(col); S.flash = .35;
+    SFX.sniper(); kick(col); S.flash = .35; hitstop(.07);
     const m2 = muzzle(); S.beams.push({ x0: m2.x, y0: m2.y, x1: t.x, y1: t.y, life: .3, max: .3, w: 5, color: '#fff2f4' });
     S.laser = null; S.scope = null;
     tween(S.cam, { x: 480, y: 270, z: 1 }, .25, EZ.io);
     await hit(t, { src: 'snipe', mult: cfg.snipeX }); return;
+  }
+  if (k === 'bomb') {
+    const rings = crossRings(t); rings.flat().forEach(c => { if (c.kind === 'num' && targetable(c)) c.res = true; });
+    const m = muzzle(); GN.vis = false; SFX.toss();
+    S.bomb = { x0: m.x, y0: m.y, x1: t.x, y1: t.y, k: 0, blink: 0 };
+    await tween(S.bomb, { k: 1 }, .32, EZ.io);
+    SFX.thud(); S.shake = Math.max(S.shake, .1); hitstop(.03);
+    for (const d of [.14, .1, .07]) { S.bomb.blink = 1; SFX.fuse(); await wait(d); }
+    S.bomb = null; SFX.boom(); hitstop(.1); S.flash = .5; S.shake = .45;
+    log(`炸彈十字炸開（每個方向 ${cfg.bombR} 格），炸過 ×${cfg.bombX}`, 'bomb');
+    const hits = [];
+    for (const ring of rings) { // flames step outward one ring per beat
+      for (const c of ring) { S.flames.push({ x: c.x, y: c.y, t: 0, dur: .38, big: ring === rings[0] }); burst(c.x, c.y, pick(['#ff8a3d', '#ffd34d']), 6, 160); hits.push(hit(c, { src: 'bomb', mult: cfg.bombX })); }
+      await wait(.07);
+    }
+    await Promise.all(hits); return;
   }
   if (t.kind === 'num') t.res = true;
   SFX.freeze(); kick(col); const m = muzzle();
@@ -603,10 +662,17 @@ async function playTurn() {
   S.phase = 'gun';
   const t = chooseAutoTarget(k);
   await presentGun(k, t);
-  S.phase = 'fire'; await fire(k, t);
+  S.phase = 'fire'; S.shot = { sum: 0, n: 0 }; await fire(k, t);
   await afterShot();
 }
 async function afterShot() {
+  await drained();
+  const { sum, n } = S.shot;
+  if (n >= 2 && !G.cleared) { // end-of-shot accent: the shot's total and a chord, bigger for a bigger haul
+    const big = sum >= cfg.sorted[cfg.sorted.length - 1] * 2;
+    banner('+' + fmt(sum), big ? '#ffd34d' : '#ffe08a', `這一槍 ${n} 格`); SFX.chord(big); if (big) S.flash = Math.max(S.flash, .3);
+    await wait(big ? .4 : .22);
+  }
   await wait(.1);
   if (G.cleared || !G.cells.some(targetable)) return endCard(G.cleared ? 'mine' : 'clear');
   if (G.spinsLeft <= 0) return endCard('spins');
@@ -619,6 +685,7 @@ async function endCard(reason) {
     x.st = 'done'; tween(x, { iceA: 0 }, .3); iceBurst(x, 6); collect(x, x.v, 'melt');
     log(`冰塊融化收下 ${fmt(x.v)}`, 'ice'); await wait(.08);
   }
+  await drained();
   const covers = G.cells.filter(x => x.kind === 'num' && x.st === 'cover');
   if (covers.length) {
     await wait(.1);
@@ -634,13 +701,13 @@ async function forceGold() {
   SFX.unlock();
   if (S.phase === 'end' || G.gold.st !== 'intact') restart();
   if (S.phase !== 'ready') { log('等這一槍演完再按'); return; }
-  S.phase = 'fire'; log('測試捷徑：直接讓金磚爆開');
+  S.phase = 'fire'; S.shot = { sum: 0, n: 0 }; log('測試捷徑：直接讓金磚爆開');
   await goldExplode();
   await afterShot();
 }
 function restart() {
   cancelAll(); readCfg(); parts.length = 0; goldQ = Promise.resolve();
-  Object.assign(S, { phase: 'ready', settle: null, pops: [], beams: [], rings: [], flyers: [], banner: null, lock: null, laser: null, scope: null, flash: 0, shake: 0, cam: { x: 480, y: 270, z: 1 } });
+  Object.assign(S, { phase: 'ready', settle: null, pops: [], beams: [], rings: [], flyers: [], flames: [], bomb: null, cashQ: [], cashT: 0, shot: { sum: 0, n: 0 }, hitstop: 0, banner: null, lock: null, laser: null, scope: null, flash: 0, shake: 0, cam: { x: 480, y: 270, z: 1 } });
   GN.vis = false; GN.k = null; WH.spinning = false; WH.w = 0; buildWheel();
   newBoard(); log(`新的一張卡：${cfg.size}×${cfg.size}，${cfg.spins} 轉`);
 }
@@ -685,6 +752,9 @@ function update(dt) {
   S.flyers = S.flyers.filter(f => (f.t += dt) < f.dur);
   if (S.banner && (S.banner.t += dt) > S.banner.max) S.banner = null;
   if (S.scope) S.scope.p = Math.max(0, S.scope.p - dt * 3);
+  if (S.bomb) S.bomb.blink = Math.max(0, S.bomb.blink - dt * 6);
+  S.flames = S.flames.filter(f => (f.t += dt) < f.dur);
+  S.cashT -= dt; if (S.cashQ.length && S.cashT <= 0) { payOut(S.cashQ.shift()); S.cashT = PAY_BEAT; }
   for (let i = parts.length - 1; i >= 0; i--) { const p = parts[i]; p.life -= dt; if (p.life <= 0) { parts.splice(i, 1); continue; } p.vy += p.g * dt; if (p.kind === 'smoke') p.vx *= 1 - dt * 1.5; p.x += p.vx * dt; p.y += p.vy * dt; p.rot += p.vr * dt; }
   if (S.phase === 'hold') { WH.w = Math.min(18, WH.w + 40 * dt); WH.a += WH.w * dt; }
   // wheel ticks: one click per sector boundary under the pointer
@@ -697,7 +767,7 @@ function update(dt) {
     const r = c.roll; if (!r) continue; r.acc += dt;
     if (r.acc >= r.iv[r.i]) {
       r.acc = 0; r.i++;
-      if (r.i >= r.seq.length) { c.shown = c.v; c.roll = null; c.f = .8; c.fc = valColor(c.v); SFX.land(); if (isTop(c.v)) { burst(c.x, c.y, '#ff5a2a', 18, 240); pop('大獎！', c.x, c.y - G.cw * .6, '#ff5a2a', 18); } r.res(); }
+      if (r.i >= r.seq.length) { c.shown = c.v; c.roll = null; c.f = .8; c.fc = valColor(c.v); SFX.tick(1); if (isTop(c.v)) { SFX.land(); hitstop(.05); burst(c.x, c.y, '#ff5a2a', 18, 240); pop('大獎！', c.x, c.y - G.cw * .6, '#ff5a2a', 18); } r.res(); }
       else { c.shown = r.seq[r.i]; c.dy = -4; SFX.tick(r.i / r.seq.length); }
     }
   }
@@ -851,7 +921,10 @@ function crosshair(c, col, label) {
 }
 function drawPreview(t, a) {
   const k = GN.k; if (!k) return; const col = GUNS[k].color; ctx.globalAlpha = a;
-  if (k === 'shot' && cfg.shotMode === 'pierce') {
+  if (k === 'bomb') {
+    ctx.fillStyle = 'rgba(192,140,255,.16)'; for (const c of crossRings(t).flat()) { rrect(c.x - G.cw / 2 - 2, c.y - G.cw / 2 - 2, G.cw + 4, G.cw + 4, 5); ctx.fill(); }
+    crosshair(t, col, '×' + cfg.bombX);
+  } else if (k === 'shot' && cfg.shotMode === 'pierce') {
     ctx.fillStyle = 'rgba(255,138,61,.12)'; ctx.fillRect(colX(t.c) - G.cw / 2 - 3, G.y0 - 6, G.cw + 6, G.tw + 12);
     for (const c of pierceList(t.c)) crosshair(c, col);
   } else if (k === 'shot') {
@@ -896,6 +969,20 @@ function drawProjs() {
   ctx.globalAlpha = 1; ctx.lineCap = 'butt';
 }
 function drawFx() {
+  for (const f of S.flames) {
+    const k = f.t / f.dur, s = G.cw * (f.big ? 1.25 : 1.02) * (.55 + .45 * EZ.out(Math.min(1, k * 4)));
+    const gr = ctx.createRadialGradient(f.x, f.y, 2, f.x, f.y, s * .75); gr.addColorStop(0, '#fff6c8'); gr.addColorStop(.45, '#ffb347'); gr.addColorStop(1, 'rgba(255,90,40,0)');
+    ctx.globalAlpha = 1 - k; ctx.fillStyle = gr; ctx.fillRect(f.x - s / 2, f.y - s / 2, s, s);
+  }
+  ctx.globalAlpha = 1;
+  const b = S.bomb;
+  if (b) { // thrown in an arc toward the camera: grows mid-flight, shadow stays on the card
+    const x = lerp(b.x0, b.x1, b.k), y = lerp(b.y0, b.y1, b.k), h = Math.sin(Math.PI * b.k), sc = 1.3 + h * .5 + b.blink * .2;
+    ctx.fillStyle = 'rgba(0,0,0,.35)'; ctx.beginPath(); ctx.ellipse(x, y + 6, 12, 5, 0, 0, TAU); ctx.fill();
+    ctx.save(); ctx.translate(x, y - h * 46); ctx.scale(sc, sc); ctx.rotate(b.k < 1 ? b.k * 7 : 0); drawGun('bomb');
+    if (b.blink > 0) { ctx.globalAlpha = b.blink * .65; ctx.fillStyle = '#ff3b2a'; circle(0, -6, 12); ctx.globalAlpha = 1; }
+    ctx.restore();
+  }
   for (const r of S.rings) { if (r.t < 0) continue; const k = r.t / r.dur; ctx.globalAlpha = 1 - k; ctx.strokeStyle = r.color; ctx.lineWidth = 14 * (1 - k) + 2; ctx.beginPath(); ctx.arc(r.x, r.y, r.max * EZ.out(k), 0, TAU); ctx.stroke(); }
   ctx.globalAlpha = 1;
   for (const p of parts) {
@@ -949,7 +1036,7 @@ function drawBanner() {
   if (b.sub) txt(b.sub, 650, 302, 14, '#f1e7d6', 'center', 700);
   ctx.globalAlpha = 1;
 }
-const SETTLE_ROWS = [['normal', '一般槍'], ['shot', '散彈槍'], ['snipe', '狙擊槍'], ['ice', '冰塊打碎'], ['shard', '碎冰彈射'], ['mine', '地雷全收'], ['melt', '冰塊融化']];
+const SETTLE_ROWS = [['normal', '一般槍'], ['shot', '散彈槍'], ['snipe', '狙擊槍'], ['bomb', '炸彈'], ['ice', '冰塊打碎'], ['shard', '碎冰彈射'], ['mine', '地雷全收'], ['melt', '冰塊融化']];
 function drawSettle() {
   const s = S.settle; if (!s) return; const a = clamp(s.t * 3, 0, 1);
   ctx.globalAlpha = a; ctx.fillStyle = 'rgba(10,7,5,.7)'; ctx.fillRect(0, 0, W, H);
@@ -977,7 +1064,8 @@ function draw() {
 // ---------- start ----------
 readCfg(); restart();
 let last = performance.now();
-function frame(now) { const dt = Math.min(.05, (now - last) / 1000); last = now; update(dt); draw(); requestAnimationFrame(frame); }
+// Hit-stop: on big impacts the world runs at 8% speed for a few frames so the hit lands as a beat.
+function frame(now) { const raw = Math.min(.05, (now - last) / 1000); last = now; let dt = raw; if (S.hitstop > 0) { S.hitstop -= raw; dt = raw * .08; } update(dt); draw(); requestAnimationFrame(frame); }
 requestAnimationFrame(t => { last = t; frame(t); });
 })();
 </script>
