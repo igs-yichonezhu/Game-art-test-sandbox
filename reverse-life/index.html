@@ -1,0 +1,910 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>反面人生</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=LXGW+WenKai+TC:wght@400;700&family=Noto+Serif+TC:wght@400;600&display=swap">
+<style>
+/* Layout: 一欄人生帳本。走過的路口在上面，紅色因果線沿左側串起每個年紀；眼前的路口是一排雙面卡片，翻過來就是反面。 */
+:root{
+  --paper:#E6E9E6;
+  --sheet:#F3F4F1;
+  --sheet-2:#DADFDC;
+  --ink:#182031;
+  --ink-2:#4A5367;
+  --muted:#6F7787;
+  --rule:#C3C9CC;
+  --hatch:#D2D7D8;
+  --night:#1E2A48;
+  --night-ink:#EAEDF5;
+  --night-2:#A7B1C8;
+  --thread:#B9382B;
+  --thread-wash:rgba(185,56,43,.12);
+  --display:"LXGW WenKai TC","Kaiti TC","BiauKai","DFKai-SB","STKaiti",serif;
+  --body:"Noto Serif TC","Songti TC","PMingLiU","Source Han Serif TC",serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#10141C;--sheet:#171C26;--sheet-2:#202634;--ink:#DCE1EA;--ink-2:#A9B1C1;--muted:#7F8799;
+    --rule:#2C3343;--hatch:#232A38;--night:#E6E3D8;--night-ink:#1A2132;--night-2:#5B6378;
+    --thread:#E2604F;--thread-wash:rgba(226,96,79,.16);color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#10141C;--sheet:#171C26;--sheet-2:#202634;--ink:#DCE1EA;--ink-2:#A9B1C1;--muted:#7F8799;
+  --rule:#2C3343;--hatch:#232A38;--night:#E6E3D8;--night-ink:#1A2132;--night-2:#5B6378;
+  --thread:#E2604F;--thread-wash:rgba(226,96,79,.16);color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+body{background:var(--paper);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.8;-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:12px 80px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--thread);outline-offset:3px}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.eyebrow,.k{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;color:var(--muted);margin:0;line-height:1.5}
+
+/* masthead: 標題和它從紙背滲過來的反字 */
+.mast{display:grid;gap:6px;padding-block:24px 22px;border-bottom:1px solid var(--rule)}
+.title{position:relative;isolation:isolate;width:fit-content;margin:0;font-family:var(--display);font-weight:700;font-size:clamp(54px,13vw,96px);line-height:1.08;letter-spacing:.06em}
+.title::after{content:attr(data-mirror);position:absolute;inset:0;z-index:-1;transform:scaleX(-1) translate(-.2em,.14em);color:var(--thread);opacity:.18;pointer-events:none;white-space:nowrap}
+.tag{margin:6px 0 0;font-family:var(--display);font-size:clamp(18px,3.4vw,22px);color:var(--ink-2)}
+.mast.compact{padding-block:14px 14px;grid-template-columns:auto 1fr;align-items:end;gap:6px 16px}
+.mast.compact .title{font-size:34px}
+.mast.compact .eyebrow{padding-bottom:6px}
+
+/* intro */
+.intro{display:grid;gap:26px;padding-top:28px}
+.lead{margin:0;font-family:var(--display);font-size:clamp(20px,3.6vw,24px);line-height:1.65;max-width:25em;text-wrap:pretty}
+.rules{margin:0;padding:0;list-style:none;display:grid;gap:8px;counter-reset:r;max-width:34em}
+.rules li{display:grid;grid-template-columns:26px minmax(0,1fr);gap:8px}
+.rules li::before{counter-increment:r;content:counter(r);font-family:var(--mono);font-size:13px;color:var(--thread);padding-top:3px}
+.demo{margin:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));gap:10px}
+.demo figcaption{grid-column:1/-1;font-size:14px;color:var(--muted)}
+.d{display:flex;flex-direction:column;gap:6px;padding:14px 14px 16px;border-radius:4px;min-height:118px}
+.d .lab{font-family:var(--display);font-size:19px;font-weight:700;line-height:1.35}
+.d.yours{border:1px dashed var(--ink-2)}
+.d.his{background:var(--night);color:var(--night-ink)}
+.d.his .k,.d.his .cap{color:var(--night-2)}
+.d.none{border:1px dotted var(--rule);color:var(--muted)}
+.setup{display:grid;gap:18px;padding:20px;background:var(--sheet);border:1px solid var(--rule);border-radius:4px;max-width:520px}
+.field{display:grid;gap:6px;border:0;margin:0;padding:0;min-width:0}
+.field label,.field legend{font-family:var(--mono);font-size:11.5px;letter-spacing:.14em;color:var(--muted);padding:0}
+#name-input{font-family:var(--display);font-size:24px;padding:4px 2px;border:0;border-bottom:1.5px solid var(--ink-2);background:transparent;color:var(--ink);width:100%;max-width:12em;border-radius:0}
+#name-input:focus{outline:none;border-bottom-color:var(--thread)}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+.seg input{position:absolute;opacity:0;width:1px;height:1px}
+.seg label{font-family:var(--display);font-size:18px;letter-spacing:0;color:var(--ink);padding:4px 16px;border:1px solid var(--rule);border-radius:3px;cursor:pointer}
+.seg input:checked+label{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.seg input:focus-visible+label{outline:2px solid var(--thread);outline-offset:2px}
+.btn{justify-self:start;font-family:var(--display);font-size:19px;padding:9px 22px;border:0;border-radius:3px;background:var(--ink);color:var(--paper);cursor:pointer;transition:background .2s}
+.btn:hover{background:var(--thread)}
+.btn.quiet{background:transparent;color:var(--ink);border:1px solid var(--ink-2)}
+.btn.quiet:hover{background:var(--sheet-2)}
+
+/* status */
+.status{display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;justify-content:space-between;padding-block:14px;border-bottom:1px solid var(--rule);margin-bottom:22px}
+.ages{display:flex;flex-wrap:wrap;gap:2px;list-style:none;margin:0;padding:0;font-family:var(--mono);font-size:12.5px;font-variant-numeric:tabular-nums}
+.ages li{padding:1px 6px;border-radius:2px;color:var(--muted)}
+.ages li.done{color:var(--ink)}
+.ages li.now{background:var(--thread);color:var(--sheet)}
+.tally{margin:0;font-size:13px;color:var(--ink-2)}
+.tally b{font-family:var(--mono);font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+
+/* timeline: 紅色因果線 */
+.life{list-style:none;margin:0 0 28px;padding:0;position:relative}
+.life::before{content:"";position:absolute;left:21px;top:10px;bottom:10px;width:2px;background:var(--thread);opacity:.75}
+.row{display:grid;grid-template-columns:44px minmax(0,1fr);gap:14px;padding-block:8px 16px;scroll-margin-top:80px}
+.knot{width:44px;height:44px;border-radius:50%;border:2px solid var(--thread);background:var(--paper);display:grid;place-items:center;font-family:var(--mono);font-size:14px;font-weight:500;position:relative;z-index:1;font-variant-numeric:tabular-nums}
+.row-b{min-width:0;padding:4px 10px 6px;margin-left:-10px;border-radius:4px}
+.row h3{margin:0;font-family:var(--display);font-size:15px;font-weight:400;color:var(--muted);line-height:1.5}
+.row-his{margin:2px 0 0;font-family:var(--display);font-size:20px;font-weight:700;line-height:1.4}
+.row-his .who{font-weight:400;color:var(--ink-2);margin-right:.4em}
+.row-lived{margin:4px 0 0;font-size:15px;color:var(--ink-2);line-height:1.75;text-wrap:pretty}
+.row-yours{margin:6px 0 0;font-size:13px;color:var(--muted)}
+.fx{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px}
+.fx li{font-size:12.5px;line-height:1.5;padding:2px 8px;border-radius:2px}
+.fx li.open{color:var(--thread);border:1px solid var(--thread)}
+.fx li.close{color:var(--ink-2);border:1px solid var(--rule);background:repeating-linear-gradient(135deg,transparent 0 6px,var(--hatch) 6px 7px)}
+.fx-miss{margin:8px 0 0;font-size:12.5px;line-height:1.7;color:var(--muted)}
+.row.flash .row-b{animation:flash 2s ease-out}
+@keyframes flash{0%,35%{background:var(--thread-wash)}100%{background:transparent}}
+
+/* current crossroads */
+.node-h{display:grid;grid-template-columns:auto minmax(0,1fr);gap:16px;align-items:center}
+.knot.big{width:68px;height:68px;border:0;background:var(--thread);color:var(--sheet);font-size:24px;display:flex;flex-direction:column;justify-content:center;line-height:1}
+.knot.big small{font-family:var(--display);font-size:12px;margin-top:3px}
+.node h2{margin:0;font-family:var(--display);font-size:clamp(26px,5.4vw,36px);line-height:1.25;text-wrap:balance;scroll-margin-top:24px}
+.node h2:focus{outline:none}
+.situation{margin:18px 0 20px;font-size:17.5px;line-height:1.9;max-width:34em;text-wrap:pretty}
+.prompt-row{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:baseline;justify-content:space-between;margin-bottom:12px}
+.prompt{margin:0;font-family:var(--display);font-size:19px;color:var(--thread);line-height:1.5}
+.undo{background:none;border:0;padding:2px 0;font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--ink-2);text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,200px),1fr));gap:12px}
+.card{appearance:none;-webkit-appearance:none;margin:0;padding:0;border:0;background:none;text-align:left;cursor:pointer;display:flex;perspective:1100px;border-radius:4px}
+.card:disabled{cursor:default}
+.inner{flex:1;display:grid;transform-style:preserve-3d;transition:transform .7s cubic-bezier(.25,.8,.25,1)}
+.face{grid-area:1/1;display:flex;flex-direction:column;gap:8px;padding:16px 16px 18px;border-radius:4px;min-height:150px;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.front{background:var(--sheet);border:1px solid var(--rule);transition:border-color .2s,transform .2s}
+.card:not(:disabled):hover .front{border-color:var(--ink-2);transform:translateY(-2px)}
+.back{transform:rotateY(180deg);justify-content:center;border:1px solid transparent}
+.card.flipped .inner{transform:rotateY(180deg)}
+.card.is-his .inner,.card.is-none .inner{transition-delay:.18s}
+.lab{font-family:var(--display);font-size:21px;font-weight:700;line-height:1.35}
+.txt{font-size:15px;color:var(--ink-2);line-height:1.7}
+.door-new{display:flex;gap:6px;align-items:baseline;font-size:12.5px;line-height:1.5;color:var(--thread)}
+.door-new::before{content:"";flex:none;width:6px;height:6px;border-radius:50%;background:var(--thread);transform:translateY(-2px)}
+.hint{display:none;margin-top:auto;font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;color:var(--thread)}
+.card.is-cand .front{border-style:dashed;border-color:var(--thread)}
+.card.is-cand:hover .hint,.card.is-cand:focus-visible .hint{display:block}
+.mirror{display:block;transform:scaleX(-1);font-family:var(--display);font-size:22px;font-weight:700;opacity:.45;line-height:1.35}
+.cap{font-size:13px;color:var(--muted);line-height:1.5}
+.is-yours .back{border:1px dashed var(--ink-2);color:var(--ink-2)}
+.is-his .back{background:var(--night);color:var(--night-ink)}
+.is-his .back .k,.is-his .back .cap{color:var(--night-2)}
+.is-none .back{border:1px dotted var(--rule);color:var(--muted)}
+.is-none .back .lab{font-weight:400}
+
+.closed{margin-top:26px}
+.closed ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.closed li{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:12px 14px;border:1px solid var(--rule);border-radius:4px;background:repeating-linear-gradient(135deg,transparent 0 7px,var(--hatch) 7px 8px)}
+.lock{color:var(--muted);padding-top:3px}
+.lock svg{display:block;width:16px;height:18px}
+.c-lab{margin:0;font-family:var(--display);font-size:18px;color:var(--ink-2);line-height:1.4}
+.c-why{margin:2px 0 0;font-size:14px;color:var(--ink-2);line-height:1.7}
+.c-why em{font-style:normal;color:var(--thread);margin-left:.4em}
+.jump{margin-top:4px;background:none;border:0;padding:0;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--ink);text-decoration:underline;text-decoration-color:var(--thread);text-underline-offset:3px;cursor:pointer}
+
+.outcome{margin-top:22px;display:grid;gap:12px;padding:22px 22px 20px;border-radius:4px;background:var(--night);color:var(--night-ink);animation:rise .5s .5s both}
+.outcome p{margin:0}
+.outcome .k{color:var(--night-2)}
+.o-lived{font-family:var(--display);font-size:20px;line-height:1.7;text-wrap:pretty}
+.o-ghost{display:grid;gap:4px;padding-top:12px;border-top:1px dashed var(--night-2);color:var(--night-2);font-size:15px;line-height:1.75}
+.next{justify-self:start;margin-top:4px;font-family:var(--display);font-size:18px;padding:8px 20px;border:0;border-radius:3px;background:var(--night-ink);color:var(--night);cursor:pointer}
+.next:hover{background:var(--thread);color:var(--night-ink)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ending */
+.end{display:grid;gap:34px;padding-top:30px}
+.end-h{margin:0;font-family:var(--display);font-size:clamp(32px,7vw,52px);line-height:1.25;text-wrap:balance}
+.end-h:focus{outline:none}
+.epi{margin:0;font-size:18px;line-height:2;max-width:34em;text-wrap:pretty}
+.whale{position:relative;isolation:isolate;margin:0;padding:24px 0 8px;border-top:1px solid var(--rule)}
+.whale .said{margin:8px 0 0;position:relative;width:fit-content;max-width:100%;font-family:var(--display);font-weight:700;font-size:clamp(28px,6vw,42px);line-height:1.3}
+.whale .said::after{content:attr(data-mirror);position:absolute;inset:0;z-index:-1;transform:scaleX(-1) translate(-.16em,.12em);color:var(--thread);opacity:.16;pointer-events:none}
+.lives{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.lives section{padding:20px;border-radius:4px;min-width:0}
+.lives h3{margin:0;font-family:var(--display);font-size:22px}
+.lives .sub{margin:2px 0 12px;font-size:13px}
+.lives ol{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.lives li{display:grid;grid-template-columns:30px minmax(0,1fr);gap:8px;font-size:15px;line-height:1.6}
+.lives .a{font-family:var(--mono);font-size:12.5px;padding-top:2px;font-variant-numeric:tabular-nums}
+.life-his{background:var(--night);color:var(--night-ink)}
+.life-his .sub,.life-his .a{color:var(--night-2)}
+.life-yours{border:1px dashed var(--ink-2);color:var(--ink-2)}
+.life-yours .sub,.life-yours .a{color:var(--muted)}
+.block h3{margin:0 0 10px;font-family:var(--display);font-size:24px}
+.block p{margin:0 0 10px;max-width:36em}
+.c-stats{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:6px;max-width:36em}
+.c-stats li{display:grid;grid-template-columns:40px minmax(0,1fr);gap:8px}
+.c-stats b{font-family:var(--mono);font-size:22px;font-weight:500;line-height:1.3;color:var(--thread);font-variant-numeric:tabular-nums}
+.insight{font-family:var(--display);font-size:20px;color:var(--thread)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 14px;margin:0 0 14px;padding:0;list-style:none;font-size:13px;color:var(--ink-2)}
+.legend li{display:flex;align-items:center;gap:6px}
+.legend .chip{padding:0;width:22px;height:14px}
+.map-rows{display:grid;gap:8px}
+.m-row{display:grid;grid-template-columns:34px minmax(0,1fr);gap:10px;align-items:start}
+.m-row .a{font-family:var(--mono);font-size:12.5px;color:var(--muted);padding-top:4px;font-variant-numeric:tabular-nums}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{display:inline-flex;align-items:center;gap:4px;font-size:13.5px;line-height:1.5;padding:2px 9px;border-radius:2px;border:1px solid transparent}
+.chip.his{background:var(--night);color:var(--night-ink)}
+.chip.yours{border:1px dashed var(--ink-2);color:var(--ink-2)}
+.chip.none{border:1px dotted var(--muted);color:var(--muted)}
+.chip.locked{color:var(--muted);border-color:var(--rule);background:repeating-linear-gradient(135deg,transparent 0 5px,var(--hatch) 5px 6px)}
+.chip svg{width:10px;height:12px}
+.record summary{cursor:pointer;font-family:var(--display);font-size:20px;padding-block:6px}
+.record .life{margin-top:16px}
+.coda{display:grid;gap:6px;padding-top:24px;border-top:1px solid var(--rule)}
+.coda p{margin:0;font-family:var(--display);font-size:clamp(19px,3.6vw,23px);line-height:1.75;max-width:26em}
+.end-actions{display:flex;flex-wrap:wrap;gap:10px}
+
+@media (prefers-reduced-motion: reduce){
+  .inner,.front{transition:none}
+  .outcome,.row.flash .row-b{animation:none}
+}
+.node.instant .inner,.node.instant .front{transition:none!important}
+.node.instant .outcome{animation:none}
+</style>
+
+<div class="wrap"><main id="app"></main></div>
+
+<script>
+(() => {
+'use strict';
+
+/* ---------- 人生的路口 ----------
+   每個選項：label 卡片標題、card 卡片說明、lived 角色走了之後發生的事、sets 留下的因果標記。
+   req 需要全部標記、reqAny 需要任一標記、block 有任一標記就關門、blockCount 標記累積到門檻就關門。
+   complain 標記「抱怨」類的選項，用來在結尾算帳。 */
+const NODES = [
+{age:7, title:'撕破的鯨魚',
+ text:'美術課，{名}畫了一整節課的鯨魚。下課前，隔壁的阿哲一把把它撕成了兩半。',
+ options:[
+  {id:'tell', complain:true, label:'跟老師告狀', card:'哭著去找老師，大聲說這不公平。', lived:'老師罰阿哲站了一整節課。{名}學到一件事：委屈要說出來，才會有人管。', sets:['voice','grumble']},
+  {id:'why', label:'問阿哲為什麼', card:'走到阿哲面前問：你為什麼要撕？', lived:'阿哲說，因為他沒有藍色的筆。{名}把自己的分給他一半。後來他們天天一起回家。', sets:['friend']},
+  {id:'redraw', label:'回家重畫一張', card:'一句話都不說，回家畫一張更大的。', lived:'新的鯨魚被老師貼在教室後面。{名}發現，畫畫可以把難過變成別的東西。', sets:['draw']},
+ ]},
+{age:13, title:'沒有人要的那一組',
+ text:'分組報告，大家很快就湊好了隊。最後只剩{名}一個人，站在講台旁邊。',
+ options:[
+  {id:'complain', complain:true, label:'跟老師抱怨', card:'跟老師說：大家都故意不找我。', lived:'老師把{名}硬塞進一組。那組人表面客氣，私下從來不找{他}。', sets:['grumble']},
+  {id:'alone', label:'一個人做完', card:'不找了，自己一個人做完整份報告。', lived:'{名}一個人拿了全班最高分。也是從那時候起，{他}開始覺得什麼事都自己來比較快。', sets:['solo']},
+  {id:'lead', label:'站出來湊一組', req:['voice'], card:'走上講台說：還沒有組的，跟我一組。', lived:'結果湊到了四個人，{名}當了組長。原來敢開口的人，身邊會多出位子。', sets:['lead']},
+  {id:'zhe', label:'找隔壁班的阿哲', req:['friend'], card:'跑去隔壁班，拉阿哲一起做。', lived:'兩個人的報告做得亂七八糟，卻笑了整整一個禮拜。', sets:['team']},
+  {id:'comic', label:'把報告畫成漫畫', req:['draw'], card:'一個人做，但整份畫成漫畫。', lived:'漫畫版的報告在全班傳來傳去。第一次有人跑來問{名}：這怎麼畫的？', sets:['seen']},
+ ]},
+{age:17, title:'志願卡',
+ text:'志願卡明天要交。晚餐的時候，爸爸頭也沒抬：「念商，以後才有飯吃。」',
+ options:[
+  {id:'biz', label:'照爸爸說的念商', card:'填商學院，不想讓家裡擔心。', lived:'{名}考上了商學院。日子很安穩，只是課本邊邊的塗鴉越來越少。', sets:['biz']},
+  {id:'fight', complain:true, label:'跟爸爸大吵', card:'摔下筷子：你根本不懂我！', lived:'那晚吵到鄰居來敲門。之後爸爸很少再跟{名}說話，志願卡最後是隨便填的。', sets:['rift','grumble']},
+  {id:'art', label:'偷偷填美術系', req:['draw'], card:'什麼都不說，直接填美術系。', lived:'{名}上了美術系。爸爸有半年沒有問過{他}一句功課。', sets:['art']},
+  {id:'talk', label:'坐下來好好談', reqAny:['voice','lead'], card:'把想念什麼、為什麼，一條一條說給爸爸聽。', lived:'爸爸沉默了很久，最後說：「你自己決定吧。」那是{名}第一次被當成大人。', sets:['trust']},
+  {id:'north', label:'跟阿哲北上打工', req:['friend'], card:'先不念了，跟阿哲去台北闖闖看。', lived:'兩個人擠在頂樓加蓋，夏天熱得睡不著。很窮，但日子第一次是自己的。', sets:['away','team']},
+ ]},
+{age:21, title:'一百二十萬',
+ text:'爸爸的五金行周轉不過來。媽媽在電話裡哭：家裡欠了一百二十萬。',
+ options:[
+  {id:'blame', complain:true, label:'怪爸爸不會做生意', card:'在電話裡說：早就叫他不要亂進貨。', lived:'{名}把爸爸數落了一頓。錢還是沒有著落，只是從此家裡的電話，都是媽媽打來的。', sets:['grumble','rift']},
+  {id:'goHome', label:'休學回家顧店', card:'辦休學，回小鎮幫忙。', lived:'{名}回到小鎮，每天早上七點拉開鐵門。同學畢業那天，{他}在店裡對帳。', sets:['home']},
+  {id:'send', label:'留在外面，每月寄錢', card:'多兼兩份工，把錢寄回家。', lived:'錢寄回去了，人卻很少回去。{名}越來越習慣一個人撐。', sets:['away','solo']},
+  {id:'together', label:'回家跟爸爸一起想辦法', req:['trust'], block:['rift'], card:'回去把帳本攤開，跟爸爸一筆一筆算。', lived:'兩個人熬了三個晚上，跟廠商談成了分期。那是{名}第一次覺得，自己跟爸爸站在同一邊。', sets:['mended','home']},
+  {id:'borrow', label:'跟阿哲借錢', req:['friend'], card:'打給阿哲，開口借二十萬。', lived:'阿哲二話不說就匯了錢。{名}花了四年才還清，這份情一直記在心裡。', sets:['team']},
+ ]},
+{age:25, variants:[
+ {when:c => c.has('home'), title:'鎮上的大賣場',
+  text:'鎮上開了一家大賣場，五金行的客人少了一半。爸爸每天坐在店門口抽菸。',
+  options:[
+   {id:'mall', complain:true, label:'抱怨大賣場搶生意', card:'跟每個進門的客人說：大賣場會害死小店。', lived:'大家都點頭，然後去大賣場買東西。{名}說了一整年，店裡還是一樣冷清。', sets:['grumble']},
+   {id:'close', label:'把店收掉去上班', card:'說服爸爸把店收了，自己去工廠上班。', lived:'鐵門拉下來那天，爸爸一句話都沒說。{名}有了固定的薪水，也有了一個再也回不去的地方。', sets:['office']},
+   {id:'repaint', label:'把店重新畫過', reqAny:['draw','art','seen'], card:'把招牌、價目表全部重畫，做成鎮上最好認的店。', lived:'新招牌被拍上了網路，有人專程開車來看。五金行活了下來，變成半間雜貨、半間畫室。', sets:['shop','seen']},
+   {id:'repair', label:'跟爸爸一起轉型', req:['mended'], card:'跟爸爸商量，改做修理和到府安裝。', lived:'爸爸修東西，{名}接電話跑外務。大賣場不修東西，所以大家還是會來找他們。', sets:['shop']},
+  ]},
+ {title:'被搶走的提案',
+  text:'{名}熬了三個晚上做的提案，在會議上被主管說成是他自己的。',
+  options:[
+   {id:'pantry', complain:true, label:'在茶水間抱怨', card:'找同事吐苦水，說主管有多不要臉。', lived:'同事都很同情。隔週，這些話一字不漏地傳回了主管耳裡。', sets:['grumble']},
+   {id:'swallow', label:'吞下去，繼續做', card:'什麼都不說，下一次做得更好。', lived:'{名}成了部門裡最可靠的人，也是最常加班的人。', sets:['endure','office']},
+   {id:'speak', label:'當面說清楚', reqAny:['voice','lead','trust'], card:'會後敲主管的門：那份提案是我做的。', lived:'主管愣了一下。下一次開會，簡報上多了{名}的名字。', sets:['respected','office']},
+   {id:'quit', label:'辭職去畫畫', reqAny:['draw','art','seen'], card:'遞出辭呈，開始接插畫的案子。', lived:'第一年收入少了一半。但{名}每天醒來，都知道今天要畫什麼。', sets:['freelance']},
+  ]},
+ ]},
+{age:28, title:'婚禮上的那個人',
+ text:'朋友的婚禮上，{名}跟一個叫小禾的人聊了一整晚。散場的時候，小禾說：「下次見？」',
+ options:[
+  {id:'wait', label:'等小禾先聯絡', card:'回家，等對方先傳訊息。', lived:'小禾沒有傳訊息來。很多年以後，{名}還是會想起那晚的燈。', sets:['missed']},
+  {id:'whine', complain:true, label:'抱怨遇不到對的人', card:'跟朋友喝酒，說了一整晚「好人都被追走了」。', lived:'小禾坐在隔壁桌，全都聽見了，沒有再走過來。', sets:['grumble','missed']},
+  {id:'ask', label:'主動約下一次', block:['solo'], card:'追出去說：這週六，一起吃飯？', lived:'那個週六，他們吃了三個小時的飯。後來，又一起吃了很多年。', sets:['partner']},
+  {id:'sketch', label:'畫一張速寫給小禾', reqAny:['draw','art','seen','freelance'], card:'在餐巾紙上畫下小禾的側臉，塞進對方手裡。', lived:'那張餐巾紙後來被裱了框，掛在他們家的玄關。', sets:['partner']},
+  {id:'matchmaker', label:'請阿哲幫忙', req:['friend'], card:'傳訊息給阿哲：你跟新郎熟，幫我問問。', lived:'阿哲辦了一場烤肉，硬是把兩個人的位子排在一起。{名}說，這輩子欠阿哲的人情又多了一筆。', sets:['partner']},
+ ]},
+{age:33, title:'同時開著的門',
+ text:'這一年，{名}的人生同時開著好幾扇門。有些是自己推開的，有些是別人留的。',
+ options:[
+  {id:'stay', label:'照現在這樣過', card:'日子不算好，也不算壞。就這樣吧。', lived:'{名}繼續過著一樣的日子。一年一年，安靜得像什麼都沒有發生。', sets:['steady']},
+  {id:'late', complain:true, label:'抱怨一切都太遲了', card:'三十三歲了，還能怎樣。', lived:'這句話{名}說了很多次。說得越多，能做的事好像真的越少。', sets:['grumble']},
+  {id:'cafe', label:'跟阿哲合開咖啡店', req:['friend'], card:'阿哲說店面找好了，就差一個合夥人。', lived:'店開在巷子口，阿哲煮咖啡，{名}顧帳。第一年就打平了。', sets:['shop','team']},
+  {id:'book', label:'接下一本繪本', reqAny:['art','freelance','seen'], card:'出版社來問，願不願意畫一本給小孩看的書。', lived:'書名叫《撕破的鯨魚》。{名}把七歲那天的事，畫成了一個比較溫柔的版本。', sets:['book']},
+  {id:'abroad', label:'爭取外派', reqAny:['respected','lead'], blockCount:{grumble:2}, note:'主管記得{他}抱怨過的每一次。', card:'自告奮勇，去新加坡開分公司。', lived:'{名}在另一個國家待了五年，學會了一個人吃飯，也學會了開口求助。', sets:['abroad']},
+  {id:'hualien', label:'跟小禾搬去花蓮', req:['partner'], card:'小禾想去花蓮開民宿，問{名}要不要一起。', lived:'他們在海邊租了一棟老房子。{名}每天早上被浪的聲音叫醒。', sets:['hualien']},
+ ]},
+{age:38, title:'最難的那一年',
+ text:c => c.has('shop') ? '店連續虧了十個月，房東又說要漲租。{名}每天晚上對著帳本發呆。'
+   : (c.has('book') || c.has('freelance')) ? '案子一個接一個停掉，帳戶裡的錢只夠再撐三個月。'
+   : c.has('hualien') ? '颱風把民宿的屋頂掀了一半，訂房全部取消。'
+   : c.has('abroad') ? '分公司收掉了。{名}被調回台灣，原本的位子已經有人坐。'
+   : '公司裁員，名單上有{名}的名字。',
+ options:[
+  {id:'luck', complain:true, label:'怪景氣、怪運氣', card:'逢人就說：這種環境，誰撐得下去。', lived:'大家都同意。{名}在一片同意聲裡，一天一天沒有動。', sets:['grumble']},
+  {id:'grit', label:'一個人咬牙撐', card:'不跟任何人說，自己多做一點、多扛一點。', lived:'撐過來了。代價是那一年{名}的胃常常痛，也忘了怎麼好好睡覺。', sets:['solo','worn']},
+  {id:'restart', label:'收掉，重新開始', card:'把一切收起來，從零開始。', lived:'{名}花了兩年，才不再半夜驚醒。但重新開始的那天，天氣很好。', sets:['restart']},
+  {id:'help', label:'找人一起想辦法', reqAny:['team','partner','mended','abroad','respected'], blockCount:{grumble:3}, note:'身邊的人聽{他}抱怨太多次了，分不出這次是不是真的需要幫忙。', card:'把困難說出口，請身邊的人一起想。', lived:'有人出錢，有人出主意，有人只是陪{他}吃飯。{名}第一次發現，開口求救不是丟臉的事。', sets:['helped']},
+ ]},
+{age:45, title:'在市場迷路的爸爸',
+ text:'媽媽打電話來說，爸爸上禮拜在市場迷了路，站在原地等了兩個小時。',
+ options:[
+  {id:'whyMe', complain:true, label:'抱怨為什麼又是我', card:'掛掉電話，對著牆說：為什麼什麼事都要我扛？', lived:'抱怨完，{名}還是回去了。只是那一路上，{他}一句話都沒跟爸爸說。', sets:['grumble']},
+  {id:'carer', label:'寄錢請看護', card:'找一個好看護，每個月固定付錢。', lived:'爸爸被照顧得很好。只是每次視訊，他都問：「你什麼時候回來？」', sets:['distance']},
+  {id:'moveBack', label:'搬回去照顧', card:'把生活打包，搬回小鎮。', lived:'{名}每天陪爸爸走到市場再走回來。爸爸偶爾會叫錯{他}的名字，{名}每次都應。', sets:['care']},
+  {id:'sorry', label:'回去說那句對不起', req:['rift'], card:'坐在爸爸床邊，說那句一直沒說出口的話。', lived:'{名}說了對不起。爸爸握著{他}的手，過了很久才說：「我也是。」', sets:['mended','care']},
+  {id:'chess', label:'每個週末陪他下棋', req:['mended'], card:'每個週末回去，陪爸爸下一盤象棋。', lived:'爸爸的棋下得越來越亂，{名}也輸得越來越自然。', sets:['care']},
+ ]},
+{age:52, title:'三個紅字',
+ text:'健康檢查的報告上，有三個紅字。',
+ options:[
+  {id:'unfair', complain:true, label:'抱怨老天不公平', card:'我又沒做什麼壞事，為什麼是我？', lived:'{名}抱怨了半年，一顆藥都沒吃。隔年的報告，紅字變成了五個。', sets:['grumble','sick']},
+  {id:'ignore', label:'假裝沒看到', card:'把報告收進抽屜，照樣過日子。', lived:'那一年平安無事。只是抽屜裡的報告，一年比一年厚。', sets:['sick']},
+  {id:'walk', label:'開始每天走路', card:'從明天開始，每天走八千步。', lived:'第一個月很痛苦，第三個月變成了習慣。隔年的報告，紅字少了兩個。', sets:['walk']},
+  {id:'rest', label:'好好休息一陣子', block:['solo'], card:'請一段長假，讓別人幫忙顧著。', lived:'{名}放了人生第一個長假。原來世界少了{他}一陣子，也照樣在轉。', sets:['rest']},
+  {id:'duo', label:'跟小禾一起改', req:['partner'], card:'拉著小禾一起戒宵夜、早點睡。', lived:'兩個人一起瘦了五公斤，也一起多吵了好幾次架。不過都在晚上十點以前吵完。', sets:['walk']},
+ ]},
+{age:60, title:'來敲門的年輕人',
+ text:'一個二十歲的年輕人來找{名}。他說自己卡在人生的路口，不知道該往哪裡走。',
+ options:[
+  {id:'nowadays', complain:true, label:'抱怨現在的年輕人', card:'說：我們那個年代，哪有那麼多選擇。', lived:'年輕人禮貌地點頭，喝完茶就走了，沒有再來。', sets:['grumble']},
+  {id:'safe', label:'叫他選穩的', card:'說：照爸媽說的做，不會錯。', lived:'年輕人照做了。很多年後他寄來一張卡片，上面只寫了：「謝謝。也許吧。」', sets:['adviser']},
+  {id:'listen', label:'泡茶，聽他說完', blockCount:{grumble:3}, note:'抱怨久了的人，很難安靜地聽別人把話說完。', card:'什麼建議都不給，只是聽。', lived:'年輕人講了兩個小時，最後自己說出了答案。{名}只負責添茶。', sets:['listener']},
+  {id:'teach', label:'教他畫畫', reqAny:['book','art','freelance','seen'], card:'遞給他一支筆：畫畫看，你想去的地方長什麼樣子。', lived:'他畫了一條有很多岔路的街。{名}看了很久，說：「你看，你自己都知道路不只一條。」', sets:['teach']},
+  {id:'apprentice', label:'讓他來店裡幫忙', req:['shop'], card:'說：先來店裡幫忙，邊做邊想。', lived:'他在店裡待了兩年，後來自己開了一間。開幕那天，他請{名}去剪綵。', sets:['teach']},
+ ]},
+{age:70, title:'鯨魚的反面',
+ text:'整理抽屜的時候，{名}找到一張用膠帶黏起來的鯨魚。如果能對七歲的自己說一句話，{他}會寫在它的反面。',
+ options:[
+  {id:'sayTell', label:'「委屈要說出來」', card:'受了委屈就說出來，會有人聽的。', lived:'{名}把鯨魚翻過來，在反面寫下：「委屈要說出來。」字有點抖，但寫得很用力。', words:'委屈要說出來。'},
+  {id:'sayWhy', label:'「先去問為什麼」', card:'生氣之前，先問問對方發生了什麼事。', lived:'{名}把鯨魚翻過來，在反面寫下：「先去問為什麼。」寫完，想起了好多年沒聯絡的人。', words:'先去問為什麼。'},
+  {id:'sayDraw', label:'「回家把它畫完」', card:'撕破了也沒關係，重畫一張就好。', lived:'{名}把鯨魚翻過來，在反面寫下：「回家把它畫完。」然後真的拿出筆，替鯨魚補上了尾巴。', words:'回家把它畫完。'},
+  {id:'sayMore', label:'「抱怨完，就去做點什麼」', card:'想抱怨就抱怨，但別停在那裡。', lived:'{名}把鯨魚翻過來，在反面寫下：「抱怨完，就去做點什麼。」這句話，{他}花了一輩子才學會。', words:'抱怨完，就去做點什麼。'},
+ ]},
+];
+
+const PRONOUNS = ['他', '她', 'TA'];
+const DEFAULT_NAME = '阿遙';
+const KEY = 'fanmian-life-v1';
+const RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+const LOCK = '<svg viewBox="0 0 16 18" aria-hidden="true"><rect x="2" y="8" width="12" height="9" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="M5 8V5.5a3 3 0 0 1 6 0V8" fill="none" stroke="currentColor" stroke-width="1.5"/></svg>';
+
+const S = {name: DEFAULT_NAME, pron: '他', phase: 'intro', hist: [], pending: null};
+const app = document.getElementById('app');
+let ROWS = [];
+let END = null;
+
+/* ---------- text helpers ---------- */
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fill = (s, n, p) => String(s).split('{名}').join(n).split('{他}').join(p);
+const T = s => fill(esc(s), esc(S.name), esc(S.pron));
+const L = s => fill(esc(s), `<span class="nm">${esc(S.name)}</span>`, `<span class="pr">${esc(S.pron)}</span>`);
+const plain = s => fill(s, S.name, S.pron);
+const q = s => s.startsWith('「') ? s : `「${s}」`;
+
+/* ---------- 因果 ---------- */
+const find = (row, id) => (row.opts.find(x => x.o.id === id) || {}).o;
+const hisOf = row => find(row, row.entry.his);
+
+function resolve(node, ctx){
+  if (!node.variants) return node;
+  return node.variants.find(v => !v.when || v.when(ctx));
+}
+
+function run(){
+  const tags = new Map();
+  const counts = {grumble: []};
+  const ctx = {tags, counts, has: t => tags.has(t)};
+  const rows = [];
+  const n = Math.min(NODES.length, S.hist.length + 1);
+  for (let i = 0; i < n; i++){
+    const node = resolve(NODES[i], ctx);
+    const row = {i, age: NODES[i].age, title: node.title,
+      text: typeof node.text === 'function' ? node.text(ctx) : node.text,
+      opts: [], entry: S.hist[i] || null, effects: []};
+    rows.push(row);
+    row.opts = node.options.map(o => ({o, g: gate(o, ctx, rows)}));
+    for (const {o, g} of row.opts){
+      if (g.src != null && g.kind !== 'base') rows[g.src].effects.push({kind: g.open ? 'open' : 'close', via: g.via, age: row.age, label: o.label});
+    }
+    if (row.entry){
+      const his = find(row, row.entry.his);
+      if (!his) break;
+      for (const t of his.sets || []){
+        if (!tags.has(t)) tags.set(t, i);
+        if (counts[t]) counts[t].push(i);
+      }
+    }
+  }
+  END = ctx;
+  return rows;
+}
+
+function gate(o, ctx, rows){
+  for (const t of o.block || []){
+    if (ctx.tags.has(t)){
+      const r = rows[ctx.tags.get(t)];
+      return {open: false, kind: 'closed', via: 'tag', src: r.i, why: `${r.age} 歲時，{他}${q(hisOf(r).label)}。`, tail: '那是你反對的路'};
+    }
+  }
+  for (const [t, n] of Object.entries(o.blockCount || {})){
+    const list = ctx.counts[t] || [];
+    if (list.length >= n){
+      const r = rows[list[list.length - 1]];
+      return {open: false, kind: 'closed', via: 'tag', src: r.i, why: `{他}已經抱怨過 ${list.length} 次（${list.map(k => rows[k].age).join('、')} 歲）。`, tail: o.note || ''};
+    }
+  }
+  const need = (o.req || []).filter(t => !ctx.tags.has(t));
+  if (need.length) return missing(need, rows);
+  let key = null;
+  if (o.reqAny){
+    key = o.reqAny.find(t => ctx.tags.has(t));
+    if (!key) return missing(o.reqAny, rows);
+  } else if (o.req && o.req.length){
+    key = o.req.reduce((a, t) => ctx.tags.get(t) > ctx.tags.get(a) ? t : a);
+  }
+  if (key){
+    const r = rows[ctx.tags.get(key)];
+    return {open: true, kind: 'opened', via: 'tag', src: r.i, why: `因為 ${r.age} 歲${q(hisOf(r).label)}`};
+  }
+  return {open: true, kind: 'base', src: null};
+}
+
+// 找出是哪個路口沒走、這扇門才沒打開
+function missing(list, rows){
+  let locked = null;
+  for (const r of rows){
+    if (!r.entry) continue;
+    for (const {o, g} of r.opts){
+      if (o.id === r.entry.his || !(o.sets || []).some(t => list.includes(t))) continue;
+      if (!g.open){ locked = locked || {r, o, g}; continue; }
+      const mine = o.id === r.entry.yours;
+      return {open: false, kind: 'closed', via: 'miss', src: r.i, why: `${r.age} 歲時，{他}沒有${q(o.label)}。`, tail: mine ? '因為那是你選的' : '那條路沒有人走'};
+    }
+  }
+  if (locked){
+    const {r, o, g} = locked;
+    return {open: false, kind: 'closed', via: g.via || 'miss', src: g.src != null ? g.src : r.i, why: `${r.age} 歲時，${q(o.label)}那扇門也關著。${g.why}`, tail: g.tail};
+  }
+  return {open: false, kind: 'closed', via: 'miss', src: null, why: '{他}的路上，從來沒有出現過能打開這扇門的選擇。', tail: ''};
+}
+
+/* ---------- state ---------- */
+function save(){ try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+function adopt(d){
+  if (!d || typeof d !== 'object') return;
+  if (typeof d.name === 'string' && d.name.trim()) S.name = d.name.trim().slice(0, 8);
+  if (PRONOUNS.includes(d.pron)) S.pron = d.pron;
+  if (['intro', 'play', 'end'].includes(d.phase)) S.phase = d.phase;
+  if (Array.isArray(d.hist)) S.hist = d.hist.filter(e => e && typeof e.his === 'string').map(e => ({yours: typeof e.yours === 'string' ? e.yours : null, his: e.his}));
+  if (d.pending && typeof d.pending === 'object') S.pending = {yours: typeof d.pending.yours === 'string' ? d.pending.yours : null, his: typeof d.pending.his === 'string' ? d.pending.his : null, auto: !!d.pending.auto};
+}
+
+// 內容改版後，丟掉對不上的紀錄
+function sanitize(){
+  const all = S.hist.slice(0, NODES.length);
+  const ok = [];
+  for (const e of all){
+    S.hist = ok;
+    const row = run()[ok.length];
+    const open = row.opts.filter(x => x.g.open).map(x => x.o.id);
+    if (!open.includes(e.his)) break;
+    if (e.yours != null && (!open.includes(e.yours) || e.yours === e.his)) break;
+    ok.push(e);
+  }
+  S.hist = ok;
+  const P = S.pending;
+  if (P && ok.length < NODES.length){
+    const open = run()[ok.length].opts.filter(x => x.g.open).map(x => x.o.id);
+    const bad = (P.yours != null && !open.includes(P.yours)) || (P.his != null && !open.includes(P.his)) || (P.yours == null && P.his == null) || (P.yours != null && P.yours === P.his);
+    if (bad) S.pending = null;
+  } else S.pending = null;
+  if (S.phase === 'end' && ok.length < NODES.length) S.phase = ok.length ? 'play' : 'intro';
+  if (S.phase === 'play' && ok.length >= NODES.length) S.phase = 'end';
+}
+
+/* ---------- views ---------- */
+function mast(compact){
+  return `<header class="mast${compact ? ' compact' : ''}">
+    <h1 class="title" data-mirror="反面人生">反面人生</h1>
+    ${compact ? `<p class="eyebrow">${T('{名}只走你反對的路')}</p>` : `<p class="eyebrow">人生選擇遊戲 · 十二個路口</p><p class="tag">${L('你替{名}選的路，{他}一條都不會走。')}</p>`}
+  </header>`;
+}
+
+function intro(){
+  const resume = S.hist.length && S.hist.length < NODES.length;
+  return `<section class="intro">
+    <p class="lead">${L('你是{名}心裡的那個聲音。每到人生的路口，你都會告訴{他}該怎麼走。可是{他}從來不聽。')}</p>
+    <ol class="rules">
+      <li><span>${L('每個路口，先選你會怎麼做。{他}不會走那條。')}</span></li>
+      <li><span>${L('剩下的路裡，再選一條你最反對的。{他}就走那條。')}</span></li>
+      <li><span>${L('{他}走過的路會留下因果：有些門會打開，有些門會關上。你會看見每一扇門是被哪一年關上的。')}</span></li>
+    </ol>
+    <figure class="demo">
+      <div class="d yours"><span class="k">你選的</span><span class="mirror">回家重畫一張</span><span class="cap">${L('{他}不會走這條')}</span></div>
+      <div class="d his"><span class="k">你最反對的</span><span class="lab">跟老師告狀</span><span class="cap">${L('{名}走了這條')}</span></div>
+      <div class="d none"><span class="k">沒有人走</span><span class="lab">問阿哲為什麼</span></div>
+      <figcaption>${L('每個路口都像這樣：一條留給你，一條給{名}，還有一些路沒有人走。')}</figcaption>
+    </figure>
+    <form class="setup" id="setup">
+      <div class="field"><label for="name-input">角色的名字</label><input id="name-input" name="name" maxlength="8" autocomplete="off" value="${esc(S.name)}"></div>
+      <fieldset class="field"><legend>稱呼</legend><div class="seg">${PRONOUNS.map((p, k) => `<input type="radio" name="pron" id="pron-${k}" value="${p}"${S.pron === p ? ' checked' : ''}><label for="pron-${k}">${p}</label>`).join('')}</div></fieldset>
+      <button class="btn" type="submit">${resume ? '重新從 7 歲開始' : '從 7 歲開始'}</button>
+    </form>
+    ${resume ? `<button class="btn quiet" data-act="resume">回到 ${NODES[S.hist.length].age} 歲，繼續上次</button>` : ''}
+  </section>`;
+}
+
+function statusBar(){
+  const i = S.hist.length;
+  let closed = 0, opened = 0;
+  for (const r of ROWS) for (const {g} of r.opts){ if (!g.open) closed++; else if (g.kind === 'opened') opened++; }
+  return `<div class="status">
+    <ol class="ages" aria-label="人生進度">${NODES.map((n, k) => `<li class="${k < i ? 'done' : k === i ? 'now' : ''}"${k === i ? ' aria-current="step"' : ''}>${n.age}</li>`).join('')}</ol>
+    <p class="tally">走過 <b>${i}</b> 個路口 · 打開 <b>${opened}</b> 扇門 · 關上 <b>${closed}</b> 扇門</p>
+  </div>`;
+}
+
+function rowHTML(r){
+  const his = hisOf(r);
+  const yours = r.entry.yours ? find(r, r.entry.yours) : null;
+  const direct = r.effects.filter(e => e.via === 'tag');
+  const missed = r.effects.filter(e => e.via !== 'tag');
+  const fx = (direct.length ? `<ul class="fx">${direct.map(e => `<li class="${e.kind}">${e.age} 歲${e.kind === 'open' ? '打開' : '關上'}${T(q(e.label))}</li>`).join('')}</ul>` : '')
+    + (missed.length ? `<p class="fx-miss">沒走的路，後來讓 ${missed.length} 扇門沒有打開：${missed.map(e => T(q(e.label))).join('')}</p>` : '');
+  return `<li class="row" id="row-${r.i}">
+    <div class="knot"><span>${r.age}</span></div>
+    <div class="row-b">
+      <h3>${r.age} 歲 · ${T(r.title)}</h3>
+      <p class="row-his"><span class="who">${T('{名}')}</span>${T(his.label)}</p>
+      <p class="row-lived">${T(his.lived)}</p>
+      <p class="row-yours">${yours ? `你選的是${T(q(yours.label))}` : '這一次，只剩一條路。'}</p>
+      ${fx}
+    </div>
+  </li>`;
+}
+
+function cardHTML({o, g}){
+  return `<button class="card" type="button" data-act="card" data-id="${o.id}">
+    <span class="inner">
+      <span class="face front">
+        ${g.kind === 'opened' ? `<span class="door-new">${T(g.why)}</span>` : ''}
+        <span class="lab">${T(o.label)}</span>
+        <span class="txt">${T(o.card)}</span>
+        <span class="hint">${T('選這條，{他}就走這條')}</span>
+      </span>
+      <span class="face back"></span>
+    </span>
+  </button>`;
+}
+
+function closedHTML(shut){
+  return `<section class="closed" aria-label="關著的門">
+    <p class="eyebrow">關著的門 · ${shut.length}</p>
+    <ul>${shut.map(({o, g}) => `<li>
+      <span class="lock">${LOCK}</span>
+      <div>
+        <p class="c-lab">${T(o.label)}</p>
+        <p class="c-why">${T(g.why)}${g.tail ? `<em>${T(g.tail)}</em>` : ''}</p>
+        ${g.src != null ? `<button class="jump" type="button" data-act="jump" data-row="${g.src}">回到 ${ROWS[g.src].age} 歲那一天</button>` : ''}
+      </div>
+    </li>`).join('')}</ul>
+  </section>`;
+}
+
+function play(){
+  const row = ROWS[S.hist.length];
+  const open = row.opts.filter(x => x.g.open);
+  const shut = row.opts.filter(x => !x.g.open);
+  const past = ROWS.filter(r => r.entry);
+  return `<section class="game">
+    ${statusBar()}
+    ${past.length ? `<ol class="life">${past.map(rowHTML).join('')}</ol>` : ''}
+    <article class="node" id="node">
+      <header class="node-h">
+        <div class="knot big"><span>${row.age}</span><small>歲</small></div>
+        <h2 id="node-h" tabindex="-1">${T(row.title)}</h2>
+      </header>
+      <p class="situation">${T(row.text)}</p>
+      <div class="prompt-row"><p class="prompt" id="prompt" aria-live="polite"></p><button class="undo" type="button" data-act="undo" hidden>改選</button></div>
+      <div class="cards">${open.map(cardHTML).join('')}</div>
+      ${shut.length ? closedHTML(shut) : ''}
+      <div class="outcome" id="outcome" hidden></div>
+    </article>
+  </section>`;
+}
+
+function backHTML(o, role, P){
+  if (role === 'yours') return `<span class="k">你選的</span><span class="mirror" aria-hidden="true">${T(o.label)}</span><span class="cap">${T('{他}不會走這條')}</span>`;
+  if (role === 'his') return `<span class="k">${T('{名}走了這條')}</span><span class="lab">${T(o.label)}</span><span class="cap">${P.yours == null ? '唯一開著的一條' : P.auto ? '你沒選的那條' : '你最反對的那條'}</span>`;
+  if (role === 'none') return `<span class="k">沒有人走</span><span class="lab">${T(o.label)}</span>`;
+  return '';
+}
+
+function updateNode(instant){
+  const node = document.getElementById('node');
+  if (!node) return;
+  const row = ROWS[S.hist.length];
+  const P = S.pending || {};
+  const openCount = row.opts.filter(x => x.g.open).length;
+  if (instant) node.classList.add('instant');
+
+  node.querySelectorAll('.card').forEach(btn => {
+    const id = btn.dataset.id;
+    const o = find(row, id);
+    let role = '';
+    if (P.his) role = id === P.his ? 'his' : id === P.yours ? 'yours' : 'none';
+    else if (P.yours) role = id === P.yours ? 'yours' : 'cand';
+    btn.className = 'card' + (role ? ' is-' + role : '') + (role && role !== 'cand' ? ' flipped' : '');
+    btn.disabled = !!P.his || role === 'yours';
+    btn.querySelector('.back').innerHTML = backHTML(o, role, P);
+    const name = plain(o.label);
+    btn.setAttribute('aria-label',
+      role === 'cand' ? `最反對：${name}。${plain(o.card)}`
+      : role === 'yours' ? `你選的：${name}`
+      : role === 'his' ? `${S.name}走了這條：${name}`
+      : role === 'none' ? `沒有人走：${name}`
+      : `${name}。${plain(o.card)}`);
+  });
+
+  document.getElementById('prompt').innerHTML = T(
+    P.his ? (P.yours == null ? '只剩一條路，{名}走了過去。' : P.auto ? '你沒選的那條，{名}走了。' : '你最反對的那條，{名}走了。')
+    : P.yours ? '{名}不會走你那條。剩下的路裡，你最反對哪一條？'
+    : openCount === 1 ? '只剩一條路開著。不管你說什麼，{他}都只能走這條。'
+    : '換作是你，你會怎麼做？');
+  node.querySelector('.undo').hidden = !(P.yours && !P.his);
+
+  const out = document.getElementById('outcome');
+  if (P.his){
+    const his = find(row, P.his);
+    const yours = P.yours ? find(row, P.yours) : null;
+    const last = S.hist.length === NODES.length - 1;
+    out.innerHTML = `
+      <p class="k">${row.age} 歲 · ${T('{名}')}${T(q(his.label))}</p>
+      <p class="o-lived">${T(his.lived)}</p>
+      ${yours ? `<div class="o-ghost"><p class="k">如果${T('{他}')}聽你的，${T(q(yours.label))}</p><p>${T(yours.lived)}</p></div>` : `<div class="o-ghost"><p>這一次，你沒有選擇的餘地。</p></div>`}
+      <button class="next" type="button" data-act="next">${last ? '看完這一生' : `往 ${NODES[S.hist.length + 1].age} 歲走`}</button>`;
+    out.hidden = false;
+    if (!instant) setTimeout(() => out.scrollIntoView({behavior: RM ? 'auto' : 'smooth', block: 'nearest'}), RM ? 0 : 700);
+  } else {
+    out.hidden = true;
+    out.innerHTML = '';
+  }
+  if (instant) requestAnimationFrame(() => requestAnimationFrame(() => node.classList.remove('instant')));
+}
+
+/* ---------- ending ---------- */
+function epilogue(has, g){
+  const s = ['{名}活到了七十歲。'];
+  if (has('restart')) s.push('三十八歲那年，{他}把一切收起來重新開始。第二段日子比較慢，也比較像自己。');
+  else if (has('book')) s.push('{他}畫的那本《撕破的鯨魚》，放在很多小孩的床頭。');
+  else if (has('shop')) s.push(has('team') ? '巷子口那間店還開著，阿哲煮的咖啡還是一樣苦。' : '那間店還開著，招牌換過好幾次。');
+  else if (has('hualien')) s.push('花蓮的海，每天早上照樣把{他}叫醒。');
+  else if (has('abroad')) s.push('{他}去過很遠的地方，也在那裡學會了開口求助。');
+  else if (has('freelance')) s.push('{他}一直靠畫畫過日子，不算富有，但每天都知道要畫什麼。');
+  else s.push('{他}在同一個地方待了很多年，日子安安靜靜地過去。');
+  if (has('partner')) s.push('小禾一直在{他}身邊。');
+  else if (has('missed')) s.push('{他}一個人過，偶爾還會想起那場婚禮上的燈。');
+  if (has('mended')) s.push('{他}和爸爸，最後是站在同一邊的。');
+  else if (has('rift')) s.push('那句對不起，{他}到最後都沒有說出口。');
+  else if (has('care')) s.push('爸爸最後那幾年，是{名}陪著走完的。');
+  else if (has('distance')) s.push('爸爸到最後，還是常在視訊裡問{他}什麼時候回來。');
+  if (has('walk')) s.push('七十歲了，{他}每天還是走八千步。');
+  else if (has('rest')) s.push('五十二歲那年，{他}終於學會了休息。');
+  else if (has('sick')) s.push('抽屜裡的報告一年比一年厚。');
+  if (has('teach') || has('listener')) s.push('那個來敲門的年輕人，後來常常回來看{他}。');
+  if (g === 0) s.push('{他}這輩子幾乎沒有抱怨過。');
+  else if (g <= 2) s.push(`{他}抱怨過 ${g} 次，抱怨完，還是去把事情做了。`);
+  else s.push(`{他}抱怨過 ${g} 次。後來的人說起{他}，第一句常常是：「喔，那個很愛抱怨的人。」`);
+  return s.join('');
+}
+
+const uniq = list => [...new Set(list)];
+
+function ending(){
+  const rows = ROWS;
+  const has = t => END.tags.has(t);
+  const g = END.counts.grumble.length;
+  const words = hisOf(rows[rows.length - 1]).words || '';
+
+  let total = 0, nHis = 0, nYours = 0, nNone = 0, nLocked = 0;
+  for (const r of rows) for (const {o, g: gt} of r.opts){
+    total++;
+    if (!gt.open) nLocked++;
+    else if (o.id === r.entry.his) nHis++;
+    else if (o.id === r.entry.yours) nYours++;
+    else nNone++;
+  }
+
+  const comp = [];
+  for (const r of rows) for (const x of r.opts) if (x.o.complain) comp.push({r, o: x.o, g: x.g});
+  const cHis = comp.filter(c => c.o.id === c.r.entry.his);
+  const cYours = comp.filter(c => c.o.id === c.r.entry.yours);
+  const cNone = comp.filter(c => c.g.open && c.o.id !== c.r.entry.his && c.o.id !== c.r.entry.yours);
+  const closedBy = uniq(cHis.flatMap(c => c.r.effects.filter(e => e.kind === 'close' && e.via === 'tag').map(e => e.label)));
+  const openedBy = uniq(cHis.flatMap(c => c.r.effects.filter(e => e.kind === 'open' && e.via === 'tag').map(e => e.label)));
+  const missedBy = uniq(cHis.flatMap(c => c.r.effects.filter(e => e.via !== 'tag').map(e => e.label)));
+  const insight = cHis.length >= 3 ? '你越用力反對抱怨，抱怨就越常落到{他}身上。'
+    : cYours.length >= 4 ? '你把抱怨都留給了自己，{他}就只能往別的地方走。'
+    : '抱怨每個路口都在。它會關上一些門，有時候也會打開一些。';
+
+  const chip = (r, o, gt) => {
+    const cls = !gt.open ? 'locked' : o.id === r.entry.his ? 'his' : o.id === r.entry.yours ? 'yours' : 'none';
+    return `<span class="chip ${cls}">${cls === 'locked' ? LOCK : ''}${T(o.label)}</span>`;
+  };
+
+  return `<section class="end">
+    <div>
+      <p class="eyebrow">${T('{名}')} · 七十歲</p>
+      <h2 class="end-h" id="end-h" tabindex="-1">${T('你最反對的，就是{名}的一生。')}</h2>
+    </div>
+    <p class="epi">${T(epilogue(has, g))}</p>
+
+    <figure class="whale">
+      <p class="eyebrow">寫在鯨魚反面的話</p>
+      <p class="said" data-mirror="${esc(words)}">${esc(words)}</p>
+    </figure>
+
+    <div class="lives">
+      <section class="life-his">
+        <h3>${T('{名}活的那一生')}</h3>
+        <p class="sub">每一條，都是你反對的路</p>
+        <ol>${rows.map(r => `<li><span class="a">${r.age}</span><span>${T(hisOf(r).label)}</span></li>`).join('')}</ol>
+      </section>
+      <section class="life-yours">
+        <h3>你選的那一生</h3>
+        <p class="sub">沒有發生過</p>
+        <ol>${rows.map(r => `<li><span class="a">${r.age}</span><span>${r.entry.yours ? T(find(r, r.entry.yours).label) : '（只剩一條路）'}</span></li>`).join('')}</ol>
+      </section>
+    </div>
+
+    <section class="block">
+      <h3>關於抱怨</h3>
+      <p>這一生，「抱怨」出現在 ${comp.length} 個路口。</p>
+      <ul class="c-stats">
+        <li><b>${cHis.length}</b><span>${T('次你反對抱怨，{名}就抱怨了。')}</span></li>
+        <li><b>${cYours.length}</b><span>${T('次你自己選了抱怨，那幾次{名}都去做了別的事。')}</span></li>
+        <li><b>${cNone.length}</b><span>次抱怨就放在那裡，你們誰都沒有碰。</span></li>
+      </ul>
+      ${closedBy.length || openedBy.length ? `<p>${T('{名}那幾次抱怨，')}${closedBy.length ? `後來關上了${closedBy.map(l => T(q(l))).join('')}` : ''}${closedBy.length && openedBy.length ? '；' : ''}${openedBy.length ? `也打開了${openedBy.map(l => T(q(l))).join('')}` : ''}。</p>` : ''}
+      ${missedBy.length ? `<p>${T(`抱怨的時候，{他}就沒有走別條路。因為這樣，後來還有 ${missedBy.length} 扇門一直沒有打開。`)}</p>` : ''}
+      <p class="insight">${T(insight)}</p>
+    </section>
+
+    <section class="block">
+      <h3>這一生所有的路</h3>
+      <p>${T(`一共出現過 ${total} 條路。{名}走了 ${nHis} 條，你選了 ${nYours} 條，${nNone} 條沒有人走，還有 ${nLocked} 扇門是關著的。`)}</p>
+      <ul class="legend">
+        <li><span class="chip his"></span>${T('{名}走的')}</li>
+        <li><span class="chip yours"></span>你選的</li>
+        <li><span class="chip none"></span>沒有人走</li>
+        <li><span class="chip locked"></span>關著的門</li>
+      </ul>
+      <div class="map-rows">${rows.map(r => `<div class="m-row"><span class="a">${r.age}</span><div class="chips">${r.opts.map(({o, g: gt}) => chip(r, o, gt)).join('')}</div></div>`).join('')}</div>
+    </section>
+
+    <details class="record">
+      <summary>完整的因果紀錄</summary>
+      <ol class="life">${rows.map(rowHTML).join('')}</ol>
+    </details>
+
+    <section class="coda">
+      <p>每個路口都不只一條路。</p>
+      <p>你選了一條，反面就有人走另一條。還有一些路，你們兩個都沒有看一眼。</p>
+      <p>下次覺得只剩一條路、只能抱怨的時候，把這一頁翻過來，看看反面。</p>
+    </section>
+
+    <div class="end-actions">
+      <button class="btn" type="button" data-act="again">${T('讓{名}再活一次')}</button>
+      <button class="btn quiet" type="button" data-act="rename">換一個人</button>
+    </div>
+  </section>`;
+}
+
+/* ---------- render & actions ---------- */
+function render(focus){
+  ROWS = run();
+  app.innerHTML = mast(S.phase !== 'intro') + (S.phase === 'intro' ? intro() : S.phase === 'play' ? play() : ending());
+  if (S.phase === 'play') updateNode(true);
+  if (focus){
+    const h = document.getElementById(S.phase === 'end' ? 'end-h' : 'node-h');
+    if (h){
+      h.focus({preventScroll: true});
+      if (S.phase === 'end') window.scrollTo({top: 0, behavior: RM ? 'auto' : 'smooth'});
+      else h.scrollIntoView({behavior: RM ? 'auto' : 'smooth', block: 'start'});
+    }
+  }
+}
+
+function choose(id){
+  const row = ROWS[S.hist.length];
+  const open = row.opts.filter(x => x.g.open).map(x => x.o.id);
+  if (!open.includes(id)) return;
+  const P = S.pending;
+  if (P && P.his) return;
+  if (open.length === 1) S.pending = {yours: null, his: id, auto: false};
+  else if (!P){
+    const rest = open.filter(x => x !== id);
+    S.pending = {yours: id, his: rest.length === 1 ? rest[0] : null, auto: rest.length === 1};
+  } else {
+    if (id === P.yours) return;
+    P.his = id;
+  }
+  save();
+  updateNode(false);
+}
+
+function commit(){
+  const P = S.pending;
+  if (!P || !P.his) return;
+  S.hist.push({yours: P.yours, his: P.his});
+  S.pending = null;
+  if (S.hist.length >= NODES.length) S.phase = 'end';
+  save();
+  render(true);
+}
+
+function jump(i){
+  const el = document.getElementById('row-' + i);
+  if (!el) return;
+  el.scrollIntoView({behavior: RM ? 'auto' : 'smooth', block: 'center'});
+  el.classList.remove('flash');
+  void el.offsetWidth;
+  el.classList.add('flash');
+}
+
+function restart(phase){
+  S.hist = [];
+  S.pending = null;
+  S.phase = phase;
+  save();
+  render(phase === 'play');
+  if (phase === 'intro') window.scrollTo(0, 0);
+}
+
+app.addEventListener('click', e => {
+  const b = e.target.closest('[data-act]');
+  if (!b || !app.contains(b)) return;
+  const a = b.dataset.act;
+  if (a === 'card') choose(b.dataset.id);
+  else if (a === 'undo'){ S.pending = null; save(); updateNode(false); }
+  else if (a === 'next') commit();
+  else if (a === 'jump') jump(+b.dataset.row);
+  else if (a === 'again') restart('play');
+  else if (a === 'rename') restart('intro');
+  else if (a === 'resume'){ S.phase = 'play'; save(); render(true); }
+});
+
+app.addEventListener('submit', e => {
+  if (e.target.id !== 'setup') return;
+  e.preventDefault();
+  const v = document.getElementById('name-input').value.trim();
+  S.name = (v || DEFAULT_NAME).slice(0, 8);
+  restart('play');
+});
+
+function onField(e){
+  if (e.target.id === 'name-input'){
+    S.name = (e.target.value.trim() || DEFAULT_NAME).slice(0, 8);
+    app.querySelectorAll('.nm').forEach(n => { n.textContent = S.name; });
+  } else if (e.target.name === 'pron' && PRONOUNS.includes(e.target.value)){
+    S.pron = e.target.value;
+    app.querySelectorAll('.pr').forEach(n => { n.textContent = S.pron; });
+  } else return;
+  save();
+}
+app.addEventListener('input', onField);
+app.addEventListener('change', onField);
+
+function boot(data){
+  if (data && data.S) adopt(data.S);
+  else { try { adopt(JSON.parse(localStorage.getItem(KEY) || 'null')); } catch (e) {} }
+  sanitize();
+  render(false);
+}
+
+const hot = window.claude && window.claude.hot;
+if (hot && typeof hot.snapshot === 'function'){
+  try { hot.snapshot(() => ({S: JSON.parse(JSON.stringify(S))})); } catch (e) {}
+}
+if (hot && typeof hot.ready === 'function') hot.ready(boot);
+else boot(hot && hot.data ? hot.data : {});
+})();
+</script>
+
+</body>
+</html>
